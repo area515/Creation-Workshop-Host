@@ -225,6 +225,7 @@ public class Main {
 		
 		//Startup all printers that should be autostarted
 		List<PrinterConfiguration> configurations = HostProperties.Instance().getPrinterConfigurations();
+		logger.info(configurations);
 		for (PrinterConfiguration configuration : configurations) {
 			if (configuration.isAutoStart()) {
 				PrinterService.INSTANCE.startPrinter(configuration.getName());

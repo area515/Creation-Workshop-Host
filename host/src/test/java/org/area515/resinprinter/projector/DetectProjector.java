@@ -30,12 +30,6 @@ public class DetectProjector {
 				hasFound = true;
 			}
 			logger.info("  JSSCCommPort projector detection:{}", resources);
-			
-			/*port = new RXTXEventBasedCommPort();
-			logger.info("  RXTXEventBasedCommPort projector detection:{}", SerialManager.Instance().getProjectorModel(port, newComPortSettings, false));
-			
-			port = new RXTXSynchronousReadBasedCommPort();
-			logger.info("  RXTXSynchronousReadBasedCommPort projector detection:{}", SerialManager.Instance().getProjectorModel(port, newComPortSettings, false));*/
 		}
 		Assert.assertTrue(hasFound);
 	}

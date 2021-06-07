@@ -12,5 +12,5 @@
 <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.area515.resinprinter.server.Main"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="photonic3d"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx100M -Dlog4j.configurationFile=${workspace_loc:photonic3d\conf\eclipselog4j2.properties} -Djava.library.path=${workspace_loc:photonic3d\os\win64} -XX:+UnlockCommercialFeatures -XX:+FlightRecorder"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx100M -Dlog4j.configurationFile=${workspace_loc:photonic3d\conf\eclipselog4j2.properties} -Djava.library.path=${workspace_loc} -XX:+UnlockCommercialFeatures -XX:+FlightRecorder"/>
 </launchConfiguration>

@@ -1,0 +1,187 @@
+<html>
+    <head>
+        <title>wifisetup</title>
+        <style>
+		.Nettitle { 
+			font-size: 15px;
+			font-weight: bolder;
+			padding-bottom: 5px;
+		}
+		.hostname { 
+			font-size: 15px;
+			padding-bottom: 2.5px;
+			padding-left: 5px;
+		}
+		.SSID { 
+			font-size: 15px;
+			padding-bottom: 2.5px;
+			padding-left: 5px;
+		}
+		.IP { 
+			font-size: 15px;
+			padding-bottom: 2.5px;
+			padding-left: 5px;
+		}
+		.details { 
+			font-size: 12px;
+			padding-bottom: 2.5px;
+			padding-left: 5px;
+		}
+		.MAC { 
+			font-size: 15px;
+			padding-bottom: 2.5px;
+			padding-left: 5px;
+		}
+		.visiblelabel { 
+			position: absolute; 
+			top: 130px; 
+			left: 250px;
+			width:300px;
+			color: white;
+			padding-left: 20px;
+			padding-top: 5px;
+			font-size: 30px;
+			z-index: 2;
+		}
+		.savebutton { 
+			position: absolute; 
+			top: 315px; 
+			left: 250px;
+			width:300px;
+			color: white;
+			text-align: center;
+			font-size: 30px;
+			z-index: 2;
+		}
+		.wifiselect { 
+			position: absolute; 
+			top: 191px; 
+			left: 266px;
+			width: 270px;
+			height: 109px;
+			background-color: transparent;
+			color: white;
+			border: none;
+			font-size: large;
+			overflow-y: auto;
+		}
+        </style>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+
+        <!-- jQuery library -->
+        <script src="../jquery/jquery.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="../bootstrap/js/bootstrap.min.js"></script>
+
+        <!-- Latest v1 Angular -->
+        <script src="../angular/js/angular.min.js"></script>
+
+        <script src="js/moment.min.js"></script>
+		
+		<script src="js/printflow.js"></script>
+		<script src="js/printerconfig.js"></script>
+		
+		<script src="js/js.cookie.js"></script>
+		
+		<link href="css/printflow.css" rel="stylesheet">
+    </head>
+    <body style="background-color: black;" onload="init();">
+		<script>
+			function init(){
+				startpage();
+				setInterval(updateNetworkInfo(), 10000);
+			}
+
+			function updateNetworkInfo(){
+
+				$.getJSON('/services/machine/getNetworkHostConfiguration')
+				.done(function(data){
+					 document.getElementById("hostvar").innerHTML=data.Hostname;
+					 var MACs = "";
+					 if (data.MACs != null) {
+						 $.each(data.MACs, function(key,value){
+							console.log(key+", "+value);
+							MACs += key + ": "+value+"<BR/>";
+						 });
+					 }
+					 document.getElementById("MACaddress").innerHTML  = MACs;
+					 
+					 var IPs = "";
+					 if (data.IPs != null) {
+						 $.each(data.IPs, function(key,value){
+							IPs += key + ": "+value+"<BR/>";
+						 });
+					 }
+					 document.getElementById("IPaddress").innerHTML  = IPs;
+				})
+				.fail(function(){
+					
+				});
+				
+				var select = document.getElementById("wifiselect");
+				// length should be 0 but for some really odd reason some elements can be left. If so, we do it again.
+				while (select.options.length > 0){
+					for (var i = 0; i < select.options.length; i++) {
+						select.options[i] = null;
+					}
+				}
+				$.getJSON('/services/machine/wirelessNetworks/list')
+				.done(function(data){
+					console.log(data);
+					var i = 0;
+					$.each(data, function (key, val) {
+						console.log(i + ": "+key+" "+val);
+						if (!val.hidden) {
+							option = document.createElement('option');
+							option.id = option.text = option.value = val.ssid;
+//TODO: show wifi strength image for each ssid
+							option.style = "background: url(images/wifi-tiny.png) no-repeat; padding-top: 2px; padding-right: 10px;";
+							select.add( option );
+							i = i + 1;
+						}
+					});
+					$("#wifiselect").html($("#wifiselect option").sort(function (a, b) {
+						return a.text == b.text ? 0 : a.text.toLowerCase() < b.text.toLowerCase() ? -1 : 1
+					})) 
+				});
+			}
+			
+			function setupWifi(){
+				location.href="wifisetup.html?SSID="+$("#wifiselect").val();
+			}
+		
+		</script>
+        <div class="screen">
+            <div class="main">
+				<img src="images/wifisettings.png" usemap="wifisettings" class="uilayer">
+				<map name="wifisettings">
+					<area  alt="" title="" href="wifisettings.html" shape="poly" coords="160,40,137,45,118,58,105,77,100,100,105,123,118,142,137,155,160,160,183,155,202,142,215,123,220,100,215,77,202,58,183,45" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="printflowsettings.html" shape="poly" coords="65,132,52,135,40,142,33,154,30,167,33,180,40,192,52,199,65,202,78,199,90,192,97,180,100,167,97,154,90,142,78,135" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="printflow.html" shape="poly" coords="48,16,35,19,25,26,18,36,15,49,18,62,25,72,35,79,48,82,61,79,71,72,78,62,81,49,78,36,71,26,61,19" style="outline:none;" target="_self"     />
+					<area  alt="" title="Setup" shape="rect" coords="252,268,548,324" style="outline:none;" target="_self" onClick="setupWifi();" />
+
+				</map>
+				<div name="visiblelabel" class="visiblelabel" id="visiblelabel" >Visible Networks</div>
+				<img name="wifi" id="wifi" class="wifi" src="images/pixel.png">
+				<img name="printerstatus" id="printerstatus" class="printerstatus" src="images/pixel.png">
+				<div name="info" id="info" class="info">
+					<div name="nettitle" id="nettitle" class="nettitle">Current Network :</div>
+					<div name="hostname" id="hostname" class="hostname">Hostname:<br/><span id="hostvar" class="hostname"></span>.local</div>
+					<div name="IP" id="IP" class="IP">IP:<br/><span id="IPaddress" class="details"></span></div>
+					<div name="MAC" id="MAC" class="MAC">MAC:<br/><span id="MACaddress" class="details"></span></div>
+				</div>
+				<div name="savebutton" class="savebutton" id="savebutton" onClick="setupWifi();">Setup Network</div>
+				<select name="wifiselect" class="wifiselect" id="wifiselect" size="5">
+					<option>Loading...</option>
+				</select>
+				
+				
+				<img name="homehighlight" id="homehighlight" class="homehighlight" src="images/homehighlightANIM.png" onClick="location.href='printflow.html';">
+				<img name="bigbuttonhighlight" id="bigbuttonhighlight" class="bigbuttonhighlight" src="images/bigbuttonANIM.png" onClick="location.href='wifisettings.html';">
+				<img name="smallbuttonhighlight" id="smallbuttonhighlight" class="smallbuttonhighlight" src="images/homehighlightANIM.png" onClick="location.href='printflowsettings.html';">
+            </div>
+        </div>
+    </body>
+</html>

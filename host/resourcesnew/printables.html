@@ -16,10 +16,11 @@
 									<span>Remove</span>
 								</button>
 								<button class="btn btn-primary" ng-click="printablesController.showUpload()">
-									<b class="fa fa-upload"></b> 
-									<span>Upload</span>
+									<b class="fa fa-upload"></b>
 								</button>
-								
+								<button class="btn btn-primary" ng-disabled="printablesController.currentPrintable == null" ng-click="downloadPrintable(printablesController.currentPrintable)">
+									<b class="fa fa-download"></b>
+								</button>
 						    </div>
 						</div>
 					</div>
@@ -28,7 +29,9 @@
 							class="list-group-item"
 				 			ng-click="printablesController.changeCurrentPrintable(printable)">
 								<i class="pull-left fa fa-2x" ng-class="printablesController.getPrintableIconClass(printable)"></i>
-								<h4 class="list-group-item-heading">{{printable.name}}</h4>
+								<h4 class="list-group-item-heading">
+									{{printable.name}}
+								</h4>
 								<p class="list-group-item-text">
 									Size: {{printable.size | number}}  
 								</p>
@@ -55,16 +58,14 @@
 					<div class="panel panel-default">
 						<div class="panel-heading">
 							<i class="fa fa-2x fa-desktop pull-left"></i>
-							<h3 class="panel-title pull-left">Preview box for: {{printablesController.currentPrintable.name}}
+							<h3 class="panel-title pull-left">
+								Preview box for: {{printablesController.currentPrintable.name}}
 							</h3>
 							<span class="btn-group pull-right" >
-								<a class="btn btn-success btn-sm" ng-click="printablesController.setProjectImage(true)" ng-disabled="printablesController.projectImage || printablesController.errorMsg">
-									<b class="fa fa-sun-o"></b> 
-									<b class="cwh-text-indent">Project Image On Printer</b>
-								</a>
-								<a class="btn btn-danger btn-sm" ng-click="printablesController.setProjectImage(false)" ng-disabled="!printablesController.projectImage || printablesController.errorMsg">
-									<b class="cwh-text-indent">Disable</b>
-								</a>
+								<button class="btn btn-success btn-sm" ng-click="printablesController.setProjectImage()" ng-disabled="printablesController.errorMsg || printablesController.projectImage == 'fa-refresh fa-spin'">
+									<b class="fa" ng-class="printablesController.projectImage"></b> 
+									<b class="cwh-text-indent">Project Image</b>
+								</button>
 							</span>
 							<div class="row">
 							</div>
@@ -75,6 +76,7 @@
 							</i>
 							<img ng-show="!printablesController.errorMsg" ng-src="{{printablesController.currentPreviewImg}}" handle-error class="img-responsive" style="width:100%; height:100%;"/>
 						</div>
+						
 					</div>
 				</div>
 			</div>

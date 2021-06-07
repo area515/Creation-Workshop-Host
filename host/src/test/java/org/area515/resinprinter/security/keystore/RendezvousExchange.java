@@ -77,8 +77,8 @@ public class RendezvousExchange {
 		
 		RendezvousPipe pipe = new RendezvousPipe(wsPort);
 		
-		File user1Keystore = new File("user1.keystore");
-		File user2Keystore = new File("user2.keystore");
+		File user1Keystore = File.createTempFile("user1","keystore");
+		File user2Keystore = File.createTempFile("user2","keystore");
 		
 		user1Keystore.delete();
 		user2Keystore.delete();
@@ -173,20 +173,10 @@ public class RendezvousExchange {
 	
 		@Override
 		public Boolean call() throws Exception {
-			try {
-				HttpResponse response = client.sendRequestToRemote(from, to, request, 20, TimeUnit.SECONDS);
-				byte[] dataFrom1 = new byte[testMessage.length()];
-				response.getEntity().getContent().read(dataFrom1);
-				return testMessage.equals(new String(dataFrom1));
-			} catch (InvalidKeyException | CertificateExpiredException | CertificateNotYetValidException
-					| NoSuchPaddingException | SignatureException | InvalidNameException
-					| InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException
-					| NoSuchAlgorithmException | TimeoutException | IOException | InterruptedException
-					| UserManagementException | HttpException e) {
-				e.printStackTrace();
-				Assert.fail("Can't scale with multiple threads");
-				return false;
-			}
+			HttpResponse response = client.sendRequestToRemote(from, to, request, 20, TimeUnit.SECONDS);
+			byte[] dataFrom1 = new byte[testMessage.length()];
+			response.getEntity().getContent().read(dataFrom1);
+			return testMessage.equals(new String(dataFrom1));
 		}
 	}
 	

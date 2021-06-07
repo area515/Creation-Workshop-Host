@@ -8,9 +8,10 @@
 		
 		var tempSLicingProfile;
 		
-		this.loadingFontsMessage = "--- Loading fonts from server ---"
-		this.loadingProfilesMessage = "--- Loading slicing profiles from server ---"
-		this.loadingMachineConfigMessage = "--- Loading machine configurations from server ---"
+		this.loadingFontsMessage = "--- Loading fonts from server ---";
+		this.loadingProfilesMessage = "--- Loading slicing profiles from server ---";
+		this.loadingPrinterDriversMessage = "--- Loading printer drivers from server ---";
+		this.loadingMachineConfigMessage = "--- Loading machine configurations from server ---";
 		this.autodirect = $location.search().autodirect;
 		
 		function findAPrinterThatTheUserMostLikelyWantsToWorkWith(printerList) {
@@ -482,6 +483,14 @@
 					});
 		}
 		
+		function refreshPrinterDrivers() {
+			$http.get('/services/machine/printerDrivers/list').success(
+					function (data) {
+						controller.printerDrivers = data;
+						controller.loadingPrinterDriversMessage = "Select a printer driver...";
+					});
+		}
+		
 		function refreshMachineConfigurations() {
 			$http.get('/services/machine/machineConfigurations/list').success(
 					function (data) {
@@ -500,13 +509,15 @@
 			photonicUtils.testScript(controller, scriptName, returnType, script);
 		};
 		
-		controller.inkDetectors = [
-		                           {name:"Visual Ink Detector", className:"org.area515.resinprinter.inkdetection.visual.VisualPrintMaterialDetector"},
-		                           {name:"Digital GPIO Ink Detector", className:"org.area515.resinprinter.inkdetection.gpio.GpioDigitalPinInkDetector"}
-		                          ];
+		controller.inkDetectors = [{name:"Visual Ink Detector", className:"org.area515.resinprinter.inkdetection.visual.VisualPrintMaterialDetector"},
+		                           {name:"Digital GPIO Ink Detector", className:"org.area515.resinprinter.inkdetection.gpio.GpioDigitalPinInkDetector"}];
+		$scope.ControlFlows = [	"Always",
+		                        "OnSuccess",
+		                        "OnSuccessAndCancellation"];
 		refreshSlicingProfiles();
 		refreshMachineConfigurations();
 		refreshPrinters();
+		refreshPrinterDrivers();
 	}])
 
 })();

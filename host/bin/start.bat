@@ -69,17 +69,17 @@ IF "%tag_name%"=="~13" (
 	echo Download URL = %browser_download_url%
 	%CD%\curl\bin\curl -L %browser_download_url% > Update.zip
 	unzip -o Update
-	java -Dlog4j.configurationFile=log4j2.properties -Djava.library.path=os/win64 -cp lib/*;. org.area515.resinprinter.server.Main > log.out 2> log.err
+	java -Dlog4j.configurationFile=log4j2.properties -cp lib/*;. org.area515.resinprinter.server.Main > log.out 2> log.err
 ) ELSE (
 	IF "%tag_name%"=="%repoVersion%" (
 		echo No update needed
-		java -Dlog4j.configurationFile=log4j2.properties -Djava.library.path=os/win64 -cp lib/*;. org.area515.resinprinter.server.Main > log.out 2> log.err
+		java -Dlog4j.configurationFile=log4j2.properties -cp lib/*;. org.area515.resinprinter.server.Main > log.out 2> log.err
 	) ELSE (
 		echo Download URL = %browser_download_url%
 		%CD%\curl\bin\curl -L %browser_download_url% > Update.zip
 		unzip -o Update
 		del -Q Update.zip
-		java -Dlog4j.configurationFile=log4j2.properties -Djava.library.path=os/win64 -cp lib/*;. org.area515.resinprinter.server.Main > log.out 2> log.err
+		java -Dlog4j.configurationFile=log4j2.properties -cp lib/*;. org.area515.resinprinter.server.Main > log.out 2> log.err
 	)
 )
 

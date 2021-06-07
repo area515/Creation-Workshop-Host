@@ -73,8 +73,6 @@ dependencies {
   compile 'com.fasterxml.jackson.core:jackson-annotations:2.4.5'
   compile 'com.fasterxml.jackson.core:jackson-databind:2.4.5'
 
-  compile 'org.rxtx:rxtx:2.1.7'
-
   compile 'org.powermock:powermock-module-junit4:1.6.4'
   compile 'org.powermock:powermock-api-mockito:1.6.4'
 
@@ -137,9 +135,7 @@ jar.archiveName = 'photonic3d.jar'
 // TASK CONFIG
 // -----------
 test {
-  systemProperty "java.library.path", osLibDir()
   includes = ['**/*FullTestSuite*']
-
   forkEvery = 5
   maxHeapSize = "1G"
   testLogging {
@@ -152,10 +148,6 @@ test {
 
 javadoc {
   failOnError = false
-}
-
-run {
-  systemProperty "java.library.path", osLibDir()
 }
 
 githubPages {
@@ -313,22 +305,6 @@ applicationDistribution.from(testJar) {
 
 // UTILITY FUNCTIONS
 // -----------------
-String osLibDir() {
-  switch (osdetector.classifier) {
-    case "windows-x86_64":
-      return 'os/win64'
-    case "windows-x86_32":
-      return 'os/win32'
-    case "linux-x86_64":
-      return 'os/Linux/x86_64'
-    case "linux-x86_32":
-      return 'os/Linux/i686'
-    case "linux-arm_32":
-      return 'os/Linux/armv61'
-    default:
-      return 'unknown'
-  }
-}
 
 String currentCommitHash() {
   def history = grgit.log(maxCommits: 1)

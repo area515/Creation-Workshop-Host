@@ -49,8 +49,11 @@ public class STLFileProcessor extends AbstractPrintFileProcessor<Iterator<Triang
 
 	@Override
 	public JobStatus processFile(PrintJob printJob) throws Exception {
+		JobStatus status = printJob.getStatus();
+		STLDataAid dataAid = null;
+		boolean footerAttempted = false;
 		try {
-			STLDataAid dataAid = (STLDataAid)initializeJobCacheWithDataAid(printJob);
+			dataAid = (STLDataAid)initializeJobCacheWithDataAid(printJob);
 			boolean overrideNormals = dataAid.configuration.getMachineConfig().getOverrideModelNormalsWithRightHandRule() == null?false:dataAid.configuration.getMachineConfig().getOverrideModelNormalsWithRightHandRule();
 			ZSlicer slicer = new ZSlicer(dataAid.customizer.getZScale(), 
 					dataAid.xPixelsPerMM / dataAid.customizer.getZScale(), 
@@ -73,11 +76,10 @@ public class STLFileProcessor extends AbstractPrintFileProcessor<Iterator<Triang
 			//renderingImage
 			//Everything needs to be setup in the dataByPrintJob before we start the header
 			performHeader(dataAid);
-			
 			for (int z = startPoint; dataAid.slicingProfile.getDirection().isSliceAvailable(z, endPoint) && dataAid.printer.isPrintActive(); z += dataAid.slicingProfile.getDirection().getVector()) {
 				
 				//Performs all of the duties that are common to most print files
-				JobStatus status = performPreSlice(dataAid, dataAid.currentlyRenderingImage.getScriptEngine(), slicer.getStlErrors());
+				status = performPreSlice(dataAid, dataAid.currentlyRenderingImage.getScriptEngine(), slicer.getStlErrors());
 				if (status != null) {
 					return status;
 				}
@@ -108,9 +110,19 @@ public class STLFileProcessor extends AbstractPrintFileProcessor<Iterator<Triang
 				}
 			}
 			
-			return performFooter(dataAid);
+			try {
+				return performFooter(dataAid);
+			} finally {
+				footerAttempted = true;
+			}
 		} finally {
-			clearDataAid(printJob);
+			try {
+				if (!footerAttempted && dataAid != null) {
+					performFooter(dataAid);
+				}
+			} finally {
+				clearDataAid(printJob);
+			}
 		}
 	}
 	

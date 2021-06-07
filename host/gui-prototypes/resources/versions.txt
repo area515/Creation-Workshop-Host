@@ -1,4 +1,0 @@
-bootstrap-3.3.5
-bootcards-1.1.2
-angular-1.4.3
-font-awesome-4.4.0

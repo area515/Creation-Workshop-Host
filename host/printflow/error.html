@@ -1,0 +1,99 @@
+<html>
+    <head>
+        <title>Error Page</title>
+        <style>
+
+		.printbutton { 
+			position: absolute; 
+			top: 315px; 
+			left: 250px;
+			width:300px;
+			color: white;
+			text-align: center;
+			font-size: 30px;
+			z-index: 2;
+		}
+		.printlabel { 
+			position: absolute; 
+			top: 120px; 
+			left: 130px;
+			width:60px;
+			color: white;
+			text-align: center;
+			font-size: 30px;
+			z-index: 2;
+		}
+		
+		.errordialogue {
+			position: absolute; 
+			top: 130px; 
+			left: 200px;
+			width:400px;
+			height:190px;
+			
+		}
+        </style>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+
+		<script src="js/printerconfig.js"></script>
+
+        <!-- jQuery library -->
+        <script src="../jquery/jquery.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="../bootstrap/js/bootstrap.min.js"></script>
+
+        <!-- Latest v1 Angular -->
+        <script src="../angular/js/angular.min.js"></script>
+
+        <script src="js/moment.min.js"></script>
+		
+		<script src="js/printflow.js"></script>
+		
+		<script src="js/js.cookie.js"></script>
+		
+		<link href="css/printflow.css" rel="stylesheet">	
+		
+    </head>
+    <body style="background-color: black;" onload="init();">
+		<script>
+			function init(){
+				startpage();
+				document.getElementById("errorname").innerHTML='<span class="glyphicon glyphicon-exclamation-sign"></span> '+decodeURIComponent(urlParam("errorname"));
+				if ((urlParam("errordetails2") !== null)&&(decodeURIComponent(urlParam("errordetails2")) !== "null")){
+				document.getElementById("errordetails").innerHTML=decodeURIComponent(urlParam("errordetails"))+"<br/>"+decodeURIComponent(urlParam("errordetails2"));
+				}
+				else {
+					document.getElementById("errordetails").innerHTML=decodeURIComponent(urlParam("errordetails"));
+				}
+				type=decodeURIComponent(urlParam("type"));
+				// to allow most flexibility, this page supports other panel types from bootstrap.js. Defaults to 'panel-danger'/red
+				if ((type !== "null") && (type in {success:"",info:"",warning:"",danger:""})){
+						document.getElementById("errordialogue").className+=(' panel-'+type);
+						document.getElementById("errordialogue").className = document.getElementById("errordialogue").className.replace( /(?:^|\s)panel-danger(?!\S)/g , '' );
+				}
+			}
+		</script>
+        <div class="screen">
+            <div class="main">
+				<img src="images/error.png" usemap="error" class="uilayer">
+				<map name="error" style="z-index: 100;">
+					<area  alt="" title="" href="printflow.html" shape="poly" coords="48,16,35,19,25,26,18,36,15,49,18,62,25,72,35,79,48,82,61,79,71,72,78,62,81,49,78,36,71,26,61,19" style="outline:none;" target="_self"     />
+					<area  alt="" title="WPS Setup" shape="rect" coords="252,268,548,324" style="outline:none;" target="_self" onClick="startPrint();"    />
+				</map>
+				<img name="wifi" id="wifi" class="wifi" src="images/pixel.png">
+				<img name="printerstatus" id="printerstatus" class="printerstatus" src="images/pixel.png">
+				<div name="errordialogue" id="errordialogue" class="errordialogue panel panel-danger">
+					<div id="errorname" class="panel-heading">Unknown Error</div>
+					<div id="errordetails" class="panel-body">???</div>
+				</div>
+				<div name="warn" id="warn" class="warn"></div>
+				
+				<img name="homehighlight" id="homehighlight" class="homehighlight" src="images/homehighlightANIM.png" onClick="location.href='printflow.html';">
+            </div>
+        </div>
+
+	
+    </body>
+</html>

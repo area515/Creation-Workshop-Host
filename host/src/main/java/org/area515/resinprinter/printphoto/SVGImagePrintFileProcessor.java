@@ -62,7 +62,7 @@ public class SVGImagePrintFileProcessor extends ImagePrintFileProcessor {
 				        ImageTranscoder trans = new ImageTranscoder() {
 				            @Override
 				            public BufferedImage createImage(int w, int h) {
-				                return new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
+				            	return aid.printer.createBufferedImageFromGraphicsOutputInterface(w,  h);
 				            }
 
 				            @Override

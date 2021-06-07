@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -79,6 +80,10 @@ public class CreationWorkshopSceneFileProcessor extends AbstractPrintFileProcess
 		TreeMap<String, File> images = new TreeMap<>(new AlphanumericComparator());
 
 		for (File file : files) {
+			if (file.getPath().contains("__MACOSX") && file.getName().startsWith(".")) {
+				continue;
+			}
+			
 			images.put(file.getName(), file);
 		}
 		
@@ -118,6 +123,13 @@ public class CreationWorkshopSceneFileProcessor extends AbstractPrintFileProcess
 		return null;
 	}
 
+	private File buildImageFile(File gCodeFile, int padLength, int index) {
+		String imageNumber = String.format("%0" + padLength + "d", index);
+		String imageFilename = FilenameUtils.removeExtension(gCodeFile.getName()) + imageNumber + ".png";
+		File imageFile = new File(gCodeFile.getParentFile(), imageFilename);
+		return imageFile;
+	}
+	
 	@Override
 	public JobStatus processFile(final PrintJob printJob) throws Exception {
 		File gCodeFile = findGcodeFile(printJob.getJobFile());
@@ -129,6 +141,12 @@ public class CreationWorkshopSceneFileProcessor extends AbstractPrintFileProcess
 		try {
 			logger.info("Parsing file:{}", gCodeFile);
 			int padLength = determinePadLength(gCodeFile);
+			File imageFileToRender = buildImageFile(gCodeFile, padLength, 0);
+			Future<RenderingContext> nextConFuture = startImageRendering(aid, imageFileToRender);
+			aid.cache.setCurrentRenderingPointer(imageFileToRender);
+
+			int imageIndexCached = 0;
+			
 			stream = new BufferedReader(new FileReader(gCodeFile));
 			String currentLine;
 			Integer sliceCount = null;
@@ -154,35 +172,33 @@ public class CreationWorkshopSceneFileProcessor extends AbstractPrintFileProcess
 							printer.showBlankImage();
 							
 							//This is the perfect time to wait for a pause if one is required.
-							printer.waitForPauseIfRequired();
+							printer.waitForPauseIfRequired(this, aid);
 						} else {
 							if (startOfLastImageDisplay > -1) {
 					//printJob.setCurrentSliceTime(System.currentTimeMillis() - startOfLastImageDisplay);
 								printJob.completeRenderingSlice(System.currentTimeMillis() - startOfLastImageDisplay, null);
 							}
 							startOfLastImageDisplay = System.currentTimeMillis();
-							
-							RenderingContext data = aid.cache.getOrCreateIfMissing(Boolean.TRUE);
-							BufferedImage oldImage = data.getPrintableImage();
+							RenderingContext context = nextConFuture.get();
 							int incoming = Integer.parseInt(matcher.group(1));
-					//printJob.setCurrentSlice(incoming);
-							String imageNumber = String.format("%0" + padLength + "d", incoming);
-							String imageFilename = FilenameUtils.removeExtension(gCodeFile.getName()) + imageNumber + ".png";
-							File imageFile = new File(gCodeFile.getParentFile(), imageFilename);
-							BufferedImage newImage = ImageIO.read(imageFile);
-							newImage = applyImageTransforms(aid, data.getScriptEngine(), newImage);
-							// applyBulbMask(aid, (Graphics2D)newImage.getGraphics(), newImage.getWidth(), newImage.getHeight());
-							data.setPrintableImage(newImage);
-							logger.info("Show picture: {}", imageFilename);
+							File currentImage = buildImageFile(gCodeFile, padLength, incoming);
+							aid.cache.setCurrentRenderingPointer(currentImage);
+							
+							//This is to prevent a miscache in the event that someone built this file as 1 based or some other strange configuration.
+							if (incoming != imageIndexCached) {
+								nextConFuture = startImageRendering(aid, currentImage);
+							}
+							imageIndexCached = incoming + 1;
+							
+							imageFileToRender = buildImageFile(gCodeFile, padLength, incoming + 1);
+							nextConFuture = startImageRendering(aid, imageFileToRender);
+							//BufferedImage newImage = applyImageTransforms(aid, context.getScriptEngine(), context.getPrintableImage());
+							logger.info("Show picture: {}", incoming);
 							
 							//Notify the client that the printJob has increased the currentSlice
 							NotificationManager.jobChanged(printer, printJob);
 
-							printer.showImage(data.getPrintableImage(), true);
-							
-							if (oldImage != null) {
-								oldImage.flush();
-							}
+							printer.showImage(context.getPrintableImage(), true);
 						}
 						continue;
 					}
@@ -255,7 +271,12 @@ public class CreationWorkshopSceneFileProcessor extends AbstractPrintFileProcess
 					
 					// print out comments
 					//logger.info("Ignored line:{}", currentLine);
-					printer.getGCodeControl().executeGCodeWithTemplating(printJob, currentLine, true);
+					printer.getPrinterController().executeCommands(printJob, currentLine, true);
+			}
+			
+			//This is a special case where the gcode footer wasn't executed since the user cancelled the job and it didn't reach the end of the gcode file.
+			if (printer.getStatus() == JobStatus.Cancelling) {
+				performFooter(aid);
 			}
 			
 			return printer.isPrintActive()?JobStatus.Completed:printer.getStatus();
@@ -328,15 +349,37 @@ public class CreationWorkshopSceneFileProcessor extends AbstractPrintFileProcess
 			}
 		}
 		
-		File extractDirectory = buildExtractionDirectory(processingFile.getName());
-		if (extractDirectory.exists()) {
-			deleteDirectory(extractDirectory);
-		}
-
-		try {
-			unpackDir(processingFile);
-		} catch (IOException e) {
-			throw new JobManagerException("Couldn't unpack new job:" + processingFile + " into working directory:" + extractDirectory, e);
+		synchronized (processingFile.getAbsolutePath().intern()) {
+			File extractDirectory = buildExtractionDirectory(processingFile.getName());
+			long oldCRC = 0;
+			File crc32File = new File(extractDirectory, "CRC32");
+			if (crc32File.exists()) {
+				try {
+					oldCRC = Long.parseLong(FileUtils.readFileToString(crc32File));
+				} catch (IOException e) {
+					throw new JobManagerException("Couldn't compute CRC for:" + processingFile, e);
+				}
+			}
+	
+			try {
+				long newCRC = FileUtils.checksumCRC32(processingFile);
+				if (oldCRC == newCRC) {
+					logger.info("CRC checks match, reusing old structure:" + processingFile);
+					return;
+				}
+	
+				deleteDirectory(extractDirectory);
+				extractDirectory.mkdirs();
+				FileUtils.writeStringToFile(crc32File, newCRC + "");
+			} catch (IOException e) {
+				logger.error(e);
+			}
+	
+			try {
+				unpackDir(processingFile);
+			} catch (IOException e) {
+				throw new JobManagerException("Couldn't unpack new job:" + processingFile + " into working directory:" + extractDirectory + " due to:" + e.getMessage(), e);
+			}
 		}
 	}
 
@@ -384,9 +427,15 @@ public class CreationWorkshopSceneFileProcessor extends AbstractPrintFileProcess
             // This method will returns matched file as java.io.File
             //
             List<File> files = new ArrayList<File>(FileUtils.listFiles(buildExtractionDirectory(jobFile.getName()), extensions, recursive));
-
+            Iterator<File> iter = files.iterator();
+            for (File currentFile = iter.next(); iter.hasNext(); currentFile = iter.next()) {
+    			if (currentFile.getPath().contains("__MACOSX") && currentFile.getName().startsWith(".")) {
+    				iter.remove();
+    			}
+    		}
+            
            if (files.size() > 1){
-            	throw new JobManagerException("More than one gcode file exists in print directory");
+            	throw new JobManagerException("More than one gcode file exists in print directory:" + files);
             }else if (files.size() == 0){
             	throw new JobManagerException("Gcode file was not found. Did you include the Gcode when you exported your scene?");
             }

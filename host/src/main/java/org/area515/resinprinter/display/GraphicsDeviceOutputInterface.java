@@ -113,4 +113,9 @@ public class GraphicsDeviceOutputInterface implements GraphicsOutputInterface {
 	    refreshFrame.setCursor(invisibleCursor);
 	    return refreshFrame;
 	}
+
+	@Override
+	public BufferedImage buildBufferedImage(int x, int y) {
+		return new BufferedImage(x, y, BufferedImage.TYPE_4BYTE_ABGR);
+	}
 }

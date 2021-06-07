@@ -158,4 +158,9 @@ public class PrinterDisplayFrame extends JFrame implements GraphicsOutputInterfa
 	public GraphicsOutputInterface initializeDisplay(String displayId, PrinterConfiguration configuration) {
 		throw new IllegalStateException("You should never call initializeDisplay from this class");
 	}
+	
+	@Override
+	public BufferedImage buildBufferedImage(int x, int y) {
+		return new BufferedImage(x, y, BufferedImage.TYPE_4BYTE_ABGR);
+	}
 }

@@ -83,7 +83,7 @@ public abstract class TwoDimensionalImageRenderer extends CurrentImageRenderer {
 				actualWidth = -1;
 			}
 			Image scaledImage = image.getScaledInstance(actualWidth, actualHeight, Image.SCALE_SMOOTH);
-			image = new BufferedImage(scaledImage.getWidth(null), scaledImage.getHeight(null), BufferedImage.TYPE_4BYTE_ABGR);
+			image = aid.printer.createBufferedImageFromGraphicsOutputInterface(scaledImage.getWidth(null), scaledImage.getHeight(null));
 			Graphics g = image.createGraphics();
 			g.drawImage(scaledImage, 0, 0, null);
 			g.dispose();

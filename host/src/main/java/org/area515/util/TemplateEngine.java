@@ -3,7 +3,6 @@ package org.area515.util;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import java.awt.Shape;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -13,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import javax.script.Bindings;
 import javax.script.CompiledScript;
@@ -22,7 +22,12 @@ import javax.script.ScriptException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.area515.resinprinter.job.AbstractPrintFileProcessor.DataAid;
+import org.area515.resinprinter.job.Customizer;
+import org.area515.resinprinter.job.JobManagerException;
+import org.area515.resinprinter.job.JobStatus;
 import org.area515.resinprinter.job.PrintJob;
+import org.area515.resinprinter.job.render.StubPrintFileProcessor;
 import org.area515.resinprinter.printer.Printer;
 import org.area515.resinprinter.server.HostProperties;
 
@@ -44,6 +49,17 @@ public class TemplateEngine {
 		}
 	};
 
+	public static PrintJob buildStubJob(Printer printer) throws JobManagerException {
+		PrintJob job = new PrintJob(null);//Null job for testing...
+		job.setCustomizer(new Customizer());
+		StubPrintFileProcessor<Object,Object> processor = new StubPrintFileProcessor<>();
+		job.setPrintFileProcessor(processor);
+		job.setPrinter(printer);
+		job.initializePrintJob(CompletableFuture.completedFuture(JobStatus.Ready));
+		job.setDataAid(new DataAid(job));
+		return job;
+	}
+	
 	public static String convertToFreeMarkerTemplate(String template) {
 		if (template == null || template.trim().length() == 0) {
 			return template;

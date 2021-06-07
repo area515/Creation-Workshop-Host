@@ -1,0 +1,345 @@
+<html>
+    <head>
+        <title>main menu</title>
+        <style>
+		
+		.pause { 
+			position: absolute; 
+			top: 315px; 
+			left: 250px;
+			width:300px;
+			color: white;
+			text-align: center;
+			font-size: 30px;
+			z-index: 2;
+			user-drag: none; 
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-drag: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+		.cancellabel { 
+			position: absolute; 
+			top: 120; 
+			left: 112;
+			width:60px;
+			color: white;
+			text-align: center;
+			font-size: 30px;
+			z-index: 2;
+		}
+		
+		.printlayer {
+			position: absolute; 
+			top: 132px; 
+			left: 253px;
+			width:292px;
+			height:175px;
+
+			border: none;
+			z-index: 0;
+			border-radius: 10;
+			-webkit-border-radius: 10;
+			background-color: black;
+			
+			user-drag: none; 
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-drag: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+
+		}
+		
+		.progressbardiv { 
+			position: absolute; 
+			top: 297px; 
+			left: 253px;
+			width:292px;
+			max-width: 292px;
+			height:10px;
+			color: white;
+			font-size: 10px;
+			text-align: right;
+			z-index: 0;
+		}
+		
+		.layerslice {
+			width:100%;
+			height:100%;
+			object-fit: cover;
+			user-drag: none; 
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-drag: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+		
+		.filename {
+			font-weight: bolder;
+			font-size: 15px;
+			padding-bottom: 5px;
+		}
+		.completion {
+			font-size: 13px;
+			padding-bottom: 4px;
+		}
+		.timeelapsed {
+			font-size: 13px;
+			padding-bottom: 4px;
+		}
+		.timeremaining {
+			font-size: 13px;
+			padding-bottom: 4px;
+		}
+		.totaltime {
+			font-size: 13px;
+			padding-bottom: 4px;
+		}
+		
+		.windowframe{
+			position: absolute;
+			top: 132px;
+			left: 252px;
+			z-index: 1;
+			user-drag: none; 
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-drag: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+
+		.jobid { 
+			position: absolute; 
+			top: 465px; 
+			left: 495px;
+			width:300px;
+			color: white;
+			font-size: 10px;
+			text-align: right;
+		}
+	
+
+		.pauseglyph{
+			position: absolute; 
+			top: 180px; 
+			left: 350px;
+			width:100px;
+			height:100px;
+			text-align: center;
+			color: red;
+			font-size: 60px;
+			z-index: 100;
+			animation-iteration-count: infinite;
+			animation-name: pauseglyph;
+			animation-direction: alternate;
+			animation-duration: 2s;
+			user-drag: none; 
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-drag: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+		@keyframes pauseglyph{
+			0%{color: rgba(128,128,0,128);}
+			25%{color: rgba(128,96,0,112);}
+			50%{color: rgba(128,64,0,96);}
+			75%{color: rgba(128,32,0,80);}
+			100%{color: rgba(128,0,0,64);}
+		}
+		@keyframes playfade{
+			0%{color: rgba(128,128,0,128);}
+			25%{color: rgba(128,96,0,96);}
+			50%{color: rgba(128,64,0,64);}
+			75%{color: rgba(128,32,0,32);}
+			100%{color: rgba(128,0,0,0);}
+		}
+        </style>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+
+        <!-- jQuery library -->
+        <script src="../jquery/jquery.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="../bootstrap/js/bootstrap.min.js"></script>
+
+        <!-- Latest v1 Angular -->
+        <script src="../angular/js/angular.min.js"></script>
+
+        <script src="js/moment.min.js"></script>
+		
+		<script src="js/printflow.js"></script>
+		<script src="js/printerconfig.js"></script>
+		
+		<script src="js/js.cookie.js"></script>
+		
+		<link href="css/printflow.css" rel="stylesheet">
+    </head>
+    <body style="background-color: black;" onload="init();">
+		<script>
+			endtime=0;
+			temp="";
+			initialsliceurl="";
+			sliceHeight = 0; // set this as 0 to be safe!
+			maxHeight = 0; // set this as 0 too to be safe!
+						
+			function init(){
+				$.getJSON('../services/printJobs/getByPrinterName/'+printerName)
+				.done(function(data){
+					temp=data;
+					starttime=parseInt(data.startTime);
+					currentslice=parseInt(data.currentSlice);
+					totalslices=parseInt(data.totalSlices);
+                    jobId = (data.id);
+                    runningjobName = (data.jobName);
+                    totalslices = parseInt(data.totalSlices);
+					currentslice = parseInt(data.currentSlice);
+					sliceHeight = parseFloat(data.printer.configuration.slicingProfile.InkConfig[data.printer.configuration.slicingProfile.selectedInkConfigIndex].SliceHeight);
+					maxHeight = parseFloat(data.printer.configuration.machineConfig.PlatformZSize);
+					firstlayertime=parseInt(data.printer.configuration.slicingProfile.InkConfig[data.printer.configuration.slicingProfile.selectedInkConfigIndex].FirstLayerTime);
+					bottomlayers=parseInt(data.printer.configuration.slicingProfile.InkConfig[data.printer.configuration.slicingProfile.selectedInkConfigIndex].NumberofBottomLayers);
+					layertime=parseInt(data.printer.configuration.slicingProfile.InkConfig[data.printer.configuration.slicingProfile.selectedInkConfigIndex].LayerTime);
+					//make the end time the biggest value of the two ways we try to calculate the data when we start the page. If it falls, that's ok, but it's preferable for the print time to fall.
+					if((starttime+data.elapsedTime+(parseInt(data.averageSliceTime)*(parseInt(data.totalSlices)-parseInt(data.currentSlice))))>starttime+(firstlayertime*bottomlayers)+(layertime*(totalslices-bottomlayers))){
+						endtime=starttime+data.elapsedTime+(parseInt(data.averageSliceTime)*(parseInt(data.totalSlices)-parseInt(data.currentSlice)));
+					}
+					else{
+						endtime=starttime+(firstlayertime*bottomlayers)+(layertime*(totalslices-bottomlayers));
+					}
+					
+					document.getElementById("layerslice").src=initialsliceurl="../services/printJobs/currentSliceImage/"+jobId;
+					document.getElementById("jobid").innerHTML=jobId;
+					document.getElementById("filename").innerHTML=runningjobName;
+					Cookies.set('laststartedjob',jobId);
+				})
+				.fail(function(){
+					jobId="FAKEe43a-f84f-446c-ade8-70182988d92c";
+					jobname="Dummy Test";
+					totalslices=720;
+					averageslicetime=1000;
+					endtime=starttime+(totalslices*averageslicetime);
+					document.getElementById("layerslice").src="http://www.kudo3d.com/wp-content/uploads/2015/07/Pranav_Pancha_model-of-the-Eiffel-Tower.gif";
+					document.getElementById("jobid").innerHTML=jobId;
+					document.getElementById("filename").innerHTML=runningjobName;
+					document.getElementById("vartimeelapsed").innerHTML = moment.duration(moment().valueOf()-starttime).humanize();
+				});
+				startpage();
+				document.getElementById("filename").innerHTML=runningjobName;
+				document.getElementById("jobid").innerHTML=jobId;
+				
+				setInterval(function() {
+					endtime=starttime+elapsedtime+(averageslicetime*(totalslices-currentslice));
+					document.getElementById("vartimeelapsed").innerHTML = moment.duration(moment().valueOf()-starttime).humanize();
+					
+					// safeguard for job completion
+					if (typeof Cookies.get('laststartedjob') !== 'undefined'){
+						$.getJSON('/services/printJobs/get/'+Cookies.get('laststartedjob'))
+							.done(function(data){
+								if (data.status == "Completed") {
+									window.location.href=("error.html?type=success&errorname=Print Complete!&errordetails=The print of <b>"+data.jobName+"</b> [Job ID: "+data.id+"] has completed, taking "+moment.duration(data.elapsedTime).humanize()+" altogether.&errordetails2=Please remove the print from the platform and store any uncured resin for your next print.");
+								}
+							});
+					}
+					
+					if (currentslice == 0 && jobId!="") {
+						initialsliceurl="../services/printJobs/currentSliceImage/"+jobId;
+						document.getElementById("layerslice").src=initialsliceurl+"?q="+currentslice;
+					}
+					
+					if (currentslice > 0) {
+						if (currentslice<totalslices){
+							document.getElementById("vartimeremaining").innerHTML = moment.duration(endtime-moment().valueOf()).humanize();
+							document.getElementById("totaltimes").innerHTML=moment.duration(endtime-starttime).humanize();
+							initialsliceurl="../services/printJobs/currentSliceImage/"+jobId;
+							document.getElementById("layerslice").src=initialsliceurl+"?q="+currentslice;
+							document.getElementById("progress").style = "width:"+parseInt((currentslice/totalslices)*100)+"%";
+						}
+						else{
+							// double check sliceHeight. If it's a crazy value, do not do the thing with raising the bed. We don't want a Z collision.
+							if (sliceHeight <= 0.2) {
+								var zMoveDist = maxHeight - (sliceHeight*totalslices) -20 ;// magic number of 20mm for safety's sake. 
+								if (zMoveDist > 0){
+									$.getJSON('../services/printers/moveZ/'+printerName+'/'+zMoveDist);
+								}
+							}
+							window.location.href=("error.html?type=success&errorname=Print Complete!&errordetails=The print of <b>"+runningjobName+"</b> [Job ID: "+jobId+"] has completed, taking "+moment.duration(endtime-starttime).humanize()+" altogether.&errordetails2=Please remove the print from the platform and store any uncured resin for your next print.");
+
+						}
+					}
+	
+					if ((parseFloat((currentslice/totalslices)*100).toFixed(2) != "NaN")&&(parseFloat((currentslice/totalslices)*100).toFixed(2) != "Infinity")){
+						document.getElementById("varcompletion").innerHTML = "Layer "+currentslice+" of "+totalslices+" ("+parseFloat((currentslice/totalslices)*100).toFixed(2)+"%)";
+					}
+				}, 2500);
+			}
+			
+			function pause(){
+				$.getJSON("../services/printJobs/togglePause/"+jobId);
+				if (document.getElementById("pause").innerHTML=="Pause"){
+					document.getElementById("pause").innerHTML="Resume";
+					document.getElementById("pauseglyph").innerHTML='<span class="glyphicon glyphicon-pause"></span>';
+				}
+				else {
+				document.getElementById("pause").innerHTML="Pause";
+				document.getElementById("pauseglyph").innerHTML='<span class="glyphicon glyphicon-play"></span>';
+				setTimeout(function() {
+						document.getElementById("pauseglyph").innerHTML="";
+					}, 2500);
+				}
+			}
+			
+			function cancel(){
+				$.getJSON("../services/printJobs/stopJob/"+jobId)
+				.always(function(){
+				location.href="printflow.html";
+				});
+			}
+			
+		</script>
+        <div class="screen">
+            <div class="main">
+				<img src="images/printdialogue.png" usemap="printdialogue" class="uilayer">
+				<map name="printdialogue" style="z-index: 100;">
+					<area  alt="" title="" shape="poly" coords="160,40,137,45,118,58,105,77,100,100,105,123,118,142,137,155,160,160,183,155,202,142,215,123,220,100,215,77,202,58,183,45" onClick="cancel()"style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="printflow.html" shape="poly" coords="48,16,35,19,25,26,18,36,15,49,18,62,25,72,35,79,48,82,61,79,71,72,78,62,81,49,78,36,71,26,61,19" style="outline:none;" target="_self"     />
+					<area  alt="" title="Pause" shape="rect" coords="252,268,548,324" style="outline:none;" target="_self" onClick="pause();"    />
+				</map>
+				<img name="wifi" id="wifi" class="wifi" src="images/pixel.png">
+				<img name="printerstatus" id="printerstatus" class="printerstatus" src="images/pixel.png">
+				<div name="cancellabel" class="cancellabel" id="cancellabel" onClick="cancel();">Cancel</div>
+				<div name="pause" class="pause" id="pause" onClick="pause();">Pause</div>
+				
+				<div name="info" id="info" class="info">
+					<div name="filename" id="filename" class="filename"><script>document.write(runningJobName);</script></div>
+					<div name="completion" id="completion" class="completion">Completion:<br><span id ="varcompletion" style="align-items: flex-end"><i>Calculating...</i></span></div>
+					<div name="timeelapsed" id="timeelapsed" class="timeelapsed">Time Elapsed:<br><span id ="vartimeelapsed" style="align-items: flex-end"><i>Calculating...</i></span></div>
+					<div name="timeremaining" id="timeremaining" class="timeremaining">Time Remaining:<br><span id ="vartimeremaining" style="align-items: flex-end"><i>Calculating...</i></span></div>
+					<div name="totaltime" id="totaltime" class="totaltime">Total Time:<br><span id ="totaltimes" style="align-items: flex-end"><i>Calculating...</i></span></div>
+				</div>
+				
+				<div name="jobid" id="jobid" class="jobid"><script>document.write(printid);</script></div>
+								
+				<img name="homehighlight" id="homehighlight" class="homehighlight" src="images/homehighlightANIM.png" onClick="location.href='printflow.html';">
+				<img name="bigbuttonhighlight" id="bigbuttonhighlight" class="bigbuttonhighlight" src="images/bigbuttonANIM.png" onClick="cancel();">
+				
+				<div class="printlayer" id="printlayer">
+					<img id="layerslice" class="layerslice" src=""></img>		
+				</div>
+				<img name="windowframe" id="windowframe" class="windowframe" src="images/printdialogue-frame.png">
+				<div name="pauseglyph" class="pauseglyph" id="pauseglyph"></div>
+				<div name="progressbardiv" class="progressbardiv">
+					<div id="progress" class="progress-bar progress-bar-danger progress-bar-striped active" role="progressbar" style="width:0%">
+					<span class="sr-only">70% Complete</span>
+					</div>
+				</div>
+            </div>
+        </div>
+
+	
+    </body>
+</html>

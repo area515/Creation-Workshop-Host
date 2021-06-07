@@ -1,0 +1,108 @@
+<html>
+    <head>
+        <title>Firmware Update</title>
+        <style>
+
+		.printbutton { 
+			position: absolute; 
+			top: 315px; 
+			left: 250px;
+			width:300px;
+			color: white;
+			text-align: center;
+			font-size: 30px;
+			z-index: 2;
+		}
+		.printlabel { 
+			position: absolute; 
+			top: 120px; 
+			left: 130px;
+			width:60px;
+			color: white;
+			text-align: center;
+			font-size: 30px;
+			z-index: 2;
+		}
+		
+		.log {
+			position: absolute; 
+			top: 130px; 
+			left: 250px;
+			width:300px;
+			height:178px;
+			background-color: transparent;
+			color: white;
+			font-size: 16px;
+			border: none;
+			padding: 5px;
+			resize: none;
+		}
+        </style>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+
+        <!-- jQuery library -->
+        <script src="../jquery/jquery.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="../bootstrap/js/bootstrap.min.js"></script>
+
+        <!-- Latest v1 Angular -->
+        <script src="../angular/js/angular.min.js"></script>
+
+        <script src="js/moment.min.js"></script>
+		
+		<script src="js/printflow.js"></script>
+		<script src="js/printerconfig.js"></script>
+		
+		<script src="js/js.cookie.js"></script>
+		
+		<link href="css/printflow.css" rel="stylesheet">
+		
+		
+		
+    </head>
+    <body style="background-color: black;" onload="startpage();">
+			<script>
+			var log="";
+			$.getJSON('../services/settings/releaseTagName').done(function (data){
+				var currentsoftwarerevision=data;
+				$.getJSON('../services/settings/printerProfileRepo').done(function (data) {
+						var repo = data;
+						$.getJSON('https://api.github.com/repos/'+repo+'/releases/latest').done(function (remotedata){
+							var remotesoftwarerevision = remotedata.tag_name;
+							log="Current Printer software version:\n&nbsp;&nbsp;&nbsp;&nbsp;"+currentsoftwarerevision+"\n";
+							log+="Server software version:\n&nbsp;&nbsp;&nbsp;&nbsp;"+remotesoftwarerevision+"\n\n";
+							if (remotesoftwarerevision != currentsoftwarerevision){
+								log+="Your printer software is different than the latest version. Restart the printer, and we will automatically update the printer";
+								window.location.href=("error.html?type=info&errorname=Printer Software Update Available&errordetails=There is a new software update available. Please restart your printer when it is convenient to do so, and we will install it automatically");
+							} else {
+								log+="Your printer software is up-to-date!";
+							}
+							document.getElementById("log").innerHTML=log;
+						}) .fail(function (){
+							document.getElementById("log").innerHTML="Could not access remote server to fetch remote printer software version.\n\nPlease try again later";
+						});
+					});
+				});
+		</script>
+        <div class="screen">
+            <div class="main">
+				<img src="images/syslog.png" usemap="syslog" class="uilayer">
+				<map name="syslog" style="z-index: 100;">
+					<area  alt="" title="" href="printflowsettings.html" shape="poly" coords="160,40,137,45,118,58,105,77,100,100,105,123,118,142,137,155,160,160,183,155,202,142,215,123,220,100,215,77,202,58,183,45" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="printflow.html" shape="poly" coords="48,16,35,19,25,26,18,36,15,49,18,62,25,72,35,79,48,82,61,79,71,72,78,62,81,49,78,36,71,26,61,19" style="outline:none;" target="_self"     />
+					<area  alt="" title="WPS Setup" shape="rect" coords="252,268,548,324" style="outline:none;" target="_self" onClick="startPrint();"    />
+				</map>
+				<img name="wifi" id="wifi" class="wifi" src="images/wifi-0.png">
+				<textarea class="log" id="log"></textarea>
+				<div name="warn" id="warn" class="warn"></div>
+				
+				<img name="homehighlight" id="homehighlight" class="homehighlight" src="images/homehighlightANIM.png" onClick="location.href='printflow.html';">
+				<img name="bigbuttonhighlight" id="bigbuttonhighlight" class="bigbuttonhighlight" src="images/bigbuttonANIM.png" onClick="location.href='printflowsettings.html';">
+            </div>
+        </div>
+
+	
+    </body>
+</html>

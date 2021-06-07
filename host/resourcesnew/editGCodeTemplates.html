@@ -1,7 +1,7 @@
 		<div class="panel panel-default">
 			<div class="panel-heading clearfix">
 				<i class="fa pull-left fa-2x fa-code"></i>
-				<h4 class="pull-left">non-CWS GCode Templates: {{printersController.currentPrinter.configuration.name}} </h4>
+				<h4 class="pull-left">Templates: {{printersController.currentPrinter.configuration.name}} </h4>
 				<div class="btn-group pull-right" >
 					<button class="btn btn-primary" ng-disabled="printersController.currentPrinter.started" ng-click="savePrinter(printersController.currentPrinter)" >
 						<i class="fa fa-pencil"></i>
@@ -10,6 +10,15 @@
 				</div>
 			</div>
 			<div class="list-group">
+				<div class="list-group-item">
+					<i class="fa fa-2x fa-microchip pull-left"></i>
+					<h4 class="pull-left">Printer Drivers</h4>
+					<select name="type" class="form-control"
+						ng-model="printersController.currentPrinter.configuration.machineConfig.MotorsDriverConfig.DriverType" 
+						ng-options="printerDriver.driverName as printerDriver.prettyName for printerDriver in printersController.printerDrivers">
+					  <option value="" selected>Select a printer driver...</option>
+					</select>
+				</div>
 				<div class="list-group-item">
 					<i class="fa fa-2x fa-mail-forward pull-left"></i>
 					<h4>Header (Printer may require)</h4>
@@ -108,8 +117,35 @@
 						ng-model="printersController.currentPrinter.configuration.slicingProfile.zliftDistanceGCode">
 					</div>
 				</div>
+				<div class="list-group-item">
+					<i class="fa fa-2x fa-icon-pause pull-left"></i>
+					<h4>On Pause (Optional)</h4>
+					<div class="input-group"
+						cwh-testscript
+						placeholder="use a freemarker template here"
+						helpURL="<a href='http://freemarker.incubator.apache.org/docs/dgui.html'>Templates</a><br>
+						<a href='https://en.wikipedia.org/wiki/G-code'>GCode Reference</a><br>
+						<a href='https://wiki.photonic3d.com/doku.php?id=gcode_templates'>Template Variables</a><br>
+						<a href='https://wiki.photonic3d.com/doku.php?id=gcode_examples'>A Few Examples</a>"
+						testClick="printersController.testTemplate('GCode Pause Template' , printersController.currentPrinter.configuration.slicingProfile.gCodePause)"
+						ng-model="printersController.currentPrinter.configuration.slicingProfile.gCodePause">
+					</div>
+				</div>
+				<div class="list-group-item">
+					<i class="fa fa-2x fa-icon-play pull-left"></i>
+					<h4>On Resume (Optional)</h4>
+					<div class="input-group"
+						cwh-testscript
+						placeholder="use a freemarker template here"
+						helpURL="<a href='http://freemarker.incubator.apache.org/docs/dgui.html'>Templates</a><br>
+						<a href='https://en.wikipedia.org/wiki/G-code'>GCode Reference</a><br>
+						<a href='https://wiki.photonic3d.com/doku.php?id=gcode_templates'>Template Variables</a><br>
+						<a href='https://wiki.photonic3d.com/doku.php?id=gcode_examples'>A Few Examples</a>"
+						testClick="printersController.testTemplate('GCode Resume Template' , printersController.currentPrinter.configuration.slicingProfile.gCodeResume)"
+						ng-model="printersController.currentPrinter.configuration.slicingProfile.gCodeResume">
+					</div>
+				</div>
 			</div>
-			
 			<div class="panel-footer">
 				<span ng-include="'cardFooter.html'"></span>
 			</div>

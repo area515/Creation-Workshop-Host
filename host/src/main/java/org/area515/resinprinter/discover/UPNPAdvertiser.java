@@ -100,10 +100,13 @@ public class UPNPAdvertiser implements Feature {
 					return name.contains("48") || name.contains("120");
 				}
 			});
-			for (File currentFile : iconFiles) {
-				String mimeType = Files.probeContentType(currentFile.toPath());
-				BufferedImage image = ImageIO.read(currentFile);
-				icons.add(new Icon(mimeType, image.getWidth(), image.getHeight(), image.getColorModel().getPixelSize(), new URI(webPresentationURI.toString() + "/favicon/" + currentFile.getName())));
+			
+			if (iconFiles != null) {
+				for (File currentFile : iconFiles) {
+					String mimeType = Files.probeContentType(currentFile.toPath());
+					BufferedImage image = ImageIO.read(currentFile);
+					icons.add(new Icon(mimeType, image.getWidth(), image.getHeight(), image.getColorModel().getPixelSize(), new URI(webPresentationURI.toString() + "/favicon/" + currentFile.getName())));
+				}
 			}
 			
 			LocalService<PrinterDirectoryService> contentManagerService = new AnnotationLocalServiceBinder().read(PrinterDirectoryService.class);

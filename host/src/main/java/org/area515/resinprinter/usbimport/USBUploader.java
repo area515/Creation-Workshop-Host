@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,15 +20,30 @@ import org.area515.resinprinter.plugin.Feature;
 import org.area515.resinprinter.server.HostProperties;
 import org.area515.resinprinter.server.Main;
 import org.area515.resinprinter.services.PrintableService;
+import org.area515.resinprinter.util.cron.CronFeature.CronTask;
 import org.area515.util.PrintFileFilter;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class USBUploader implements Feature {
     private static final Logger logger = LogManager.getLogger();
 	private HashMap<String, File> masterRoots;
 	private ScheduledFuture<?> future;
 	
-	private List<File> listRoots() {
-		String configRoots[] = {"/media", "/storage"};
+	public static class USBUploaderSettings {
+		private String[] configuredRoots;
+
+		public String[] getConfiguredRoots() {
+			return configuredRoots;
+		}
+		public void setConfiguredRoots(String[] configuredRoots) {
+			this.configuredRoots = configuredRoots;
+		}
+	}
+
+	private List<File> listRoots(String[] configRoots) {
 		List<File> allRoots = new ArrayList<>();
 		for (File currentFile : File.listRoots()) {
 			logger.debug("listroot:" + currentFile);
@@ -61,9 +77,17 @@ public class USBUploader implements Feature {
 	}
 	
 	@Override
-	public void start(URI uri, String settings) {
+	public void start(URI uri, String settingsString) {
+		ObjectMapper mapper = new ObjectMapper(new JsonFactory());
+		final USBUploaderSettings[] settings = new USBUploaderSettings[1];
+		try {
+			settings[0] = mapper.readValue(settingsString, new TypeReference<USBUploaderSettings>(){});
+		} catch (IOException e) {
+			throw new IllegalArgumentException(settingsString + " didn't parse correctly.", e);
+		}
+
 		masterRoots = new HashMap<>();
-		for (File root : listRoots()) {
+		for (File root : listRoots(settings[0].getConfiguredRoots())) {
 			masterRoots.put(root.getAbsolutePath(), root);
 		}
 		
@@ -73,7 +97,7 @@ public class USBUploader implements Feature {
 				Map<String, File> negativeList = new HashMap<>();
 				negativeList.putAll(masterRoots);
 				logger.debug("MasterRoots:" + masterRoots);
-				for (File root : listRoots()) {
+				for (File root : listRoots(settings[0].getConfiguredRoots())) {
 					File foundItem = negativeList.remove(root.getAbsolutePath());
 					if (foundItem == null) {
 						uploadFromRoot(root);

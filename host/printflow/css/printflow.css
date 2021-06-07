@@ -1,0 +1,260 @@
+html, body {
+	overflow:hidden;
+}
+
+
+
+.screen{
+	width: 800px;
+	height: 480px;
+	background-image: url("../images/emptybackground.png");
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.main{
+        height: 480px;
+        max-height:480px;
+        max-width: inherit;
+        padding-bottom: 40px;
+        padding-top: 40px;
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.uilayer{
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.maintopconnector{
+	position: absolute; 
+	top: 108px; 
+	left: 453px;
+	animation-iteration-count: infinite;
+	animation-name: fade;
+	animation-duration: 2s;
+	animation-direction: alternate;
+	-webkit-animation-name: fade;
+	-webkit-animation-duration: 1s;
+	-webkit-animation-direction: alternate;
+	-webkit-animation-iteration-count: infinite;
+	z-index: 2;
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.mainmidconnector{
+	position: absolute; 
+	top: 226px; 
+	left: 476px;
+	animation-iteration-count: infinite;
+	animation-name: fade;
+	animation-duration: 2s;
+	animation-direction: alternate;
+	animation-delay: 0.3s;
+	-webkit-animation-name: fade;
+	-webkit-animation-duration: 1s;
+	-webkit-animation-direction: alternate;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-delay: 0.3s;
+	z-index: 2;
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.mainbotconnector{
+	position: absolute; 
+	top: 285px; 
+	left: 439px;
+	animation-iteration-count: infinite;
+	animation-name: fade;
+	animation-duration: 2s;
+	animation-direction: alternate;
+	animation-delay: 0.6s;
+	-webkit-animation-name: fade;
+	-webkit-animation-duration: 1s;
+	-webkit-animation-direction: alternate;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-delay: 0.6s;
+	z-index: 2;
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.homehighlight{
+	position: absolute; 
+	top: 50px; 
+	left: 10px;
+	animation-iteration-count: infinite;
+	animation-name: rotate;
+	animation-duration: 2s;
+	animation-timing-function: linear;
+	-webkit-animation-name: rotate;
+	-webkit-animation-duration: 2s;
+	-webkit-animation-timing-function: linear;
+	-webkit-animation-iteration-count: infinite;
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.smallbuttonhighlight{
+	position: absolute; 
+	top: 170px; 
+	left: 27px;
+	animation-iteration-count: infinite;
+	animation-name: rotate;
+	animation-duration: 2s;
+	animation-timing-function: linear;
+	-webkit-animation-name: rotate;
+	-webkit-animation-duration: 2s;
+	-webkit-animation-timing-function: linear;
+	-webkit-animation-iteration-count: infinite;
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.bigbuttonhighlight{
+	position: absolute; 
+	top: 63px; 
+	left: 86px;
+	animation-iteration-count: infinite;
+	animation-name: rotate;
+	animation-duration: 2s;
+	animation-timing-function: linear;
+	-webkit-animation-name: rotate;
+	-webkit-animation-duration: 2s;
+	-webkit-animation-timing-function: linear;
+	-webkit-animation-iteration-count: infinite;
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+		
+@keyframes rotate{
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+@keyframes fade{
+	from {
+		opacity: 0.5;
+	}
+	to{
+		opacity: 1;
+	}
+}
+.time { 
+	position: absolute; 
+	top: 350px; 
+	left: 75px; 
+	color: white;
+	text-align: center;
+	font-size: large;
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.wifi{
+	position: absolute; 
+	top: 20px; 
+	left: 740px;
+	width: 30px;
+	height: 30px;
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.printerstatus{
+	position: absolute; 
+	top: 20px; 
+	left: 704px;
+	width: 25px;
+	height: 35px;
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.updatestatus{
+	position: absolute; 
+	top: 20px; 
+	left: 668px;
+	width: 30px;
+	height: 30px;
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.info { 
+	position: absolute; 
+	top: 120px; 
+	left: 600px; 
+	color: white;
+	font-size: 0;
+
+	max-width: 140px;
+	white-space: pre-wrap;      /* CSS3 */   
+	white-space: -moz-pre-wrap; /* Firefox */   
+	white-space: -o-pre-wrap;   /* Opera 7 */    
+	word-wrap: break-word;      /* IE */
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+.warn { 
+	position: absolute; 
+	top: 132px; 
+	left: 580px;
+	width:210px;
+	color: red;
+	user-drag: none; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	z-index: 50;
+}

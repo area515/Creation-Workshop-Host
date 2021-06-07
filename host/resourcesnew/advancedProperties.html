@@ -37,6 +37,17 @@
 					<input class="form-control" type="checkbox" ng-model="printersController.currentPrinter.configuration.machineConfig.RestartSerialOnTimeout">
 				</div>
 			</div>
+			<div class="list-group">
+				<div class="list-group-item">
+					<i class="fa fa-2x fa-code-fork pull-left"></i>
+					<h4>GCode Footer Execution</h4>
+					<select name="type" class="form-control"
+						ng-model="printersController.currentPrinter.configuration.machineConfig.footerExecutionHandling" 
+						ng-options="mode for mode in ControlFlows">
+					  <option value="" selected>Select an Execution Type...</option>
+					</select>
+				</div>
+			</div>
 			
 			<div class="panel-footer">
 				<span ng-include="'cardFooter.html'"></span>

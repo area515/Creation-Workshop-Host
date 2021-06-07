@@ -1,0 +1,231 @@
+<html>
+    <head>
+        <title>Resin Settings</title>
+        <style>
+		.layerheight { 
+			position: absolute; 
+			top: 205px; 
+			left: 515px;
+			width: 60px;
+			color: white;
+			font-size: 30px;
+			text-align: center;
+		}
+		.curingtime { 
+			position: absolute; 
+			top: 270px; 
+			left: 515px;
+			width: 60px;
+			color: white;
+			font-size: 30px;
+			text-align: center;
+		}
+		.rectime { 
+			position: absolute; 
+			top: 265px; 
+			left: 630px;
+			width: 150px;
+			color: white;
+			font-size: 15px;
+			
+		}
+		.resin { 
+			position: absolute; 
+			top: 132px; 
+			left: 253px;
+			width: 350px;
+			height: 61px;
+			background-color: transparent;
+			color: white;
+			border: none;
+			font-size: 20px;
+			padding: 10px;
+		
+			line-height: 1;
+			border: 0;
+			border-radius: 10px;
+			background: url(images/dropdown.png) no-repeat right transparent;
+			-webkit-appearance: none;
+			background-position-x: 300px;
+		}
+
+		option{
+			color: black;
+		}
+        </style>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+
+        <!-- jQuery library -->
+        <script src="../jquery/jquery.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="../bootstrap/js/bootstrap.min.js"></script>
+
+        <!-- Latest v1 Angular -->
+        <script src="../angular/js/angular.min.js"></script>
+
+        <script src="js/moment.min.js"></script>
+		
+		<script src="js/printflow.js"></script>
+		<script src="js/printerconfig.js"></script>
+		
+		<script src="js/js.cookie.js"></script>
+		
+		<link href="css/printflow.css" rel="stylesheet" class="uilayer">
+    </head>
+    <body style="background-color: black;" onload="init();">
+		<script>
+			var resinlist = {};
+			
+			function init(){
+				startpage();
+				var Ink = {};
+				$.getJSON('../services/printers/get/'+printerName).done(function(data){
+				Ink = data.configuration.slicingProfile.InkConfig;
+				
+				Ink.forEach(function(el){
+					//create a java multidimensional array
+					if (!resinlist[el.Name.split(/[0-9]/)[0].trim()]) resinlist[el.Name.split(/[0-9]/)[0].trim()]=[];
+					resinlist[el.Name.split(/[0-9]/)[0].trim()][("000"+(parseFloat(el.SliceHeight)*1000)).slice(-3)]=
+						{"Name":el.Name, "LayerTime":el.LayerTime,
+						"PercentageOfPrintMaterialConsideredEmpty": el.PercentageOfPrintMaterialConsideredEmpty,
+						"FirstLayerTime": el.FirstLayerTime,
+						"NumberofBottomLayers": el.NumberofBottomLayers,
+						"ResinPriceL": el.ResinPriceL};
+				});
+				// populate the select statement with the keys from resinlist
+					Object.keys(resinlist).forEach(function(resinStyle){
+					var option = document.createElement("option");
+					option.text=resinStyle;
+					option.id=resinStyle;
+					//get the current selected one and tell the list that one's selected
+					if (resinStyle == data.configuration.slicingProfile.SelectedInk.split(/[0-9]/)[0].trim()) option.selected = true;
+					document.getElementById("resin").add(option);
+				});
+				var selectedHeight = null;
+				data.configuration.slicingProfile.SelectedInk.split(" ").forEach(function(token){
+					if (!isNaN(parseInt(token))) {
+						selectedHeight = parseInt(token);
+						// should only happen once. If it happens more than once, someone's added a bunch of seperate numbers to the inkconfig (which is nasty)
+					}
+				});
+				document.getElementById("layerheight").innerHTML=("000"+selectedHeight).slice(-3);
+				recommendCureTime();
+				});
+				
+			}
+			
+			function findNewHeight(){
+				var newHeight = Object.keys(resinlist[$("#resin").find('option:selected').text()]).sort().reverse()[0];
+				document.getElementById("layerheight").innerHTML=("000"+newHeight).slice(-3);
+			}
+			
+			function updatePhotonic(){
+				$.getJSON('../services/printers/get/'+printerName).done(function(data){
+					data.configuration.slicingProfile.SelectedInk=$("#resin").find('option:selected').text()+" "+parseInt(document.getElementById("layerheight").innerHTML)+" Microns";
+					var resinprofile = data.configuration.slicingProfile.InkConfig.map(function(ink){ return ink.Name;}).indexOf(data.configuration.slicingProfile.SelectedInk);
+					data.configuration.slicingProfile.InkConfig[resinprofile].LayerTime = parseInt(document.getElementById("curingtime").innerHTML)*1000;
+					$.getJSON('../services/printers/stop/'+printerName);
+					console.log(data);
+					$.ajax({
+						method: 'POST',
+						url: "../services/printers/save",
+						headers: {"Content-Type": "application/json" },
+						data: JSON.stringify(data),
+						dataType: 'json',
+						success: function(resp) {
+							console.log(resp);
+						},
+						error: function(xhr, status, error) {
+							console.log(status + ":" + error);
+						}
+					});
+					$.getJSON('../services/printers/start/'+printerName);
+				});
+			}
+			
+			function changeLayerHeight(changeby){
+				var newLayerHeightMicrons = document.getElementById("layerheight").innerHTML;
+				var currentPos = Object.keys(resinlist[$("#resin").find('option:selected').text()]).sort().indexOf(newLayerHeightMicrons);
+				var totalOpts = Object.keys(resinlist[$("#resin").find('option:selected').text()]).length;
+				
+				var i = 0;
+				console.log("currentPos "+currentPos+ ", totalOpts "+totalOpts);
+				console.log("Keys:");
+				console.log(Object.keys(resinlist[$("#resin").find('option:selected').text()]).sort());
+				if (changeby=="-"){
+					if (currentPos > 0){
+						Object.keys(resinlist[$("#resin").find('option:selected').text()]).sort().forEach(function(layerMicron){
+							console.log("- "+layerMicron);
+							if (i == currentPos -1) {
+								newLayerHeightMicrons = layerMicron;
+								i=totalOpts; // skip to the end so no chance of additional matches
+							}
+							i++;
+						});	
+					}
+				}
+				else{
+					if (currentPos < totalOpts-1){
+						Object.keys(resinlist[$("#resin").find('option:selected').text()]).sort().forEach(function(layerMicron){
+							if (i == currentPos+1) {
+								console.log("+ "+layerMicron);
+								newLayerHeightMicrons = layerMicron;
+								i=totalOpts; // skip to the end so no chance of additional matches
+							}
+							i++;
+						});	
+					}
+				}
+				
+				document.getElementById("layerheight").innerHTML=newLayerHeightMicrons;
+				recommendCureTime();
+				updatePhotonic();
+
+			}
+			function changeCuringTime(changeby){
+				newCuringTime = parseInt(document.getElementById("curingtime").innerHTML);
+				if (changeby=="+"){
+					newCuringTime+=1;
+				}
+				else{
+					if (newCuringTime >1){
+						newCuringTime+=-1;
+					}
+				}
+				document.getElementById("curingtime").innerHTML=newCuringTime;
+				resinlist[$("#resin").val()][parseInt(document.getElementById("layerheight").innerHTML)].LayerTime=newCuringTime*1000;
+				updatePhotonic();
+			}
+			function recommendCureTime(){
+				document.getElementById("curingtime").innerHTML=document.getElementById("rseconds").innerHTML=resinlist[$("#resin").val()][document.getElementById("layerheight").innerHTML].LayerTime/1000;
+			}
+		</script>
+        <div class="screen">
+            <div class="main">
+				<img src="images/resin.png" usemap="#resin">
+				<map name="resin">
+					<area  alt="" title="" href="resin.html" shape="poly" coords="160,40,137,45,118,58,105,77,100,100,105,123,118,142,137,155,160,160,183,155,202,142,215,123,220,100,215,77,202,58,183,45" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="maintain.html" shape="poly" coords="65,132,52,135,40,142,33,154,30,167,33,180,40,192,52,199,65,202,78,199,90,192,97,180,100,167,97,154,90,142,78,135" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="printflow.html" shape="poly" coords="48,16,35,19,25,26,18,36,15,49,18,62,25,72,35,79,48,82,61,79,71,72,78,62,81,49,78,36,71,26,61,19" style="outline:none;" target="_self"     />
+					<area  alt="" title="+layer" shape="rect" coords="479,162,529,212" style="outline:none;" target="_self" onclick="changeLayerHeight('+');"     />
+					<area  alt="" title="-layer" shape="rect" coords="558,162,610,212" style="outline:none;" target="_self" onclick="changeLayerHeight('-');"    />
+					<area  alt="" title="+cure" shape="rect" coords="479,223,529,273" style="outline:none;" target="_self" onclick="changeCuringTime('+');"    />
+					<area  alt="" title="-cure"  shape="rect" coords="558,223,610,273" style="outline:none;" target="_self" onclick="changeCuringTime('-');"    />
+				</map>
+				<img name="wifi" id="wifi" class="wifi" src="images/pixel.png">
+				<img name="printerstatus" id="printerstatus" class="printerstatus" src="images/pixel.png">
+				<select id="resin" class="resin" onchange="findNewHeight(); recommendCureTime(); updatePhotonic(); ">
+				</select>
+				<div name="layerheight" id="layerheight" class="layerheight">25</div>
+				<div name="curingtime" id="curingtime" class="curingtime">12</div>
+				<div name="rectime" id="rectime" class="rectime">Recommended curing time per Layer: <span id="rseconds"></span> &plusmn;1 seconds</div>
+				
+				<img name="homehighlight" id="homehighlight" class="homehighlight" src="images/homehighlightANIM.png" onClick="location.href='printflow.html';">
+				<img name="bigbuttonhighlight" id="bigbuttonhighlight" class="bigbuttonhighlight" src="images/bigbuttonANIM.png" onClick="cancel();">
+				<img name="smallbuttonhighlight" id="smallbuttonhighlight" class="smallbuttonhighlight" src="images/homehighlightANIM.png" onClick="location.href='printflowsettings.html';">
+            </div>
+		</div>
+    </body>
+</html>

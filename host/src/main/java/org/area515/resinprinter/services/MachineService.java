@@ -7,7 +7,6 @@ import io.swagger.annotations.ApiResponses;
 
 import java.awt.Font;
 import java.awt.FontFormatException;
-import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -26,13 +25,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 import javax.annotation.security.RolesAllowed;
@@ -58,11 +64,13 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.area515.resinprinter.display.DisplayManager;
 import org.area515.resinprinter.display.GraphicsOutputInterface;
+import org.area515.resinprinter.gcode.PrinterDriver;
 import org.area515.resinprinter.job.PrintFileProcessor;
 import org.area515.resinprinter.network.NetInterface;
 import org.area515.resinprinter.network.NetworkManager;
@@ -88,6 +96,10 @@ import com.sun.mail.smtp.SMTPSendFailedException;
 @Path("machine")
 public class MachineService {
     private static final Logger logger = LogManager.getLogger();
+    private static final String NORMAL_LOG_FILE = "log4j2.properties";
+    private static final String DEBUG_LOG_FILE = "debuglog4j2.properties";
+    private static final String TEST_LOG_FILE = "testlog4j2.properties";
+    
 	public static MachineService INSTANCE = new MachineService();
 	
 	private Future<Boolean> restartProcess;
@@ -226,8 +238,96 @@ public class MachineService {
 	public void restartPhotonicServer() {
     	Main.restartServer();
 	}
-    
-	//TODO: getWirelessStrength
+	
+    @ApiOperation(value="Upload a diagnostic zip file that was previously downloaded or emailed from a diagnostic dump from Photonic3D. "
+    		+ "This method is quite dangerous and will reset Photonic3D to the state it was in at the time the diagnostic dump was taken from Photonic3D."
+    		+ "After this method is complete, Photonic3D should be restarted through the restartPhotonic method.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = SwaggerMetadata.SUCCESS),
+            @ApiResponse(code = 400, message = SwaggerMetadata.USER_UNDERSTANDABLE_ERROR),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@POST
+	@Path("/restoreFromBackup")
+	@Consumes("application/octet-stream")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response restoreFromBackup(InputStream istream) {
+    	FileOutputStream output = null;
+		ZipFile zipFile = null;
+		File tempFile = null;
+    	try {
+    		tempFile = File.createTempFile("restore", UUID.randomUUID() + "");
+    		output = new FileOutputStream(tempFile);
+    		IOUtils.copy(istream, output);
+    		zipFile = new ZipFile(tempFile);
+
+		    //Wipe out all directories and files
+    		new File(HostProperties.Instance().PRINTER_DIR, HostProperties.CONFIG_PROPERTIES).delete();
+    		new File(HostProperties.CONFIG_PROPERTIES).delete();
+    		new File(NORMAL_LOG_FILE).delete();
+    		new File(DEBUG_LOG_FILE).delete();
+    		new File(TEST_LOG_FILE).delete();
+       		FileUtils.deleteQuietly(HostProperties.Instance().PROFILES_DIR);
+       		FileUtils.deleteQuietly(HostProperties.Instance().MACHINE_DIR);
+       		FileUtils.deleteQuietly(HostProperties.Instance().PRINTER_DIR);
+       		FileUtils.deleteQuietly(HostProperties.Instance().CUSTOMIZER_DIR);
+       		HostProperties.Instance().PROFILES_DIR.mkdir();
+       		HostProperties.Instance().MACHINE_DIR.mkdir();
+       		HostProperties.Instance().PRINTER_DIR.mkdir();
+       		HostProperties.Instance().CUSTOMIZER_DIR.mkdir();
+			Enumeration<? extends ZipEntry> entries = zipFile.entries();
+			while (entries.hasMoreElements()) {
+				File newFile = null;
+				ZipEntry entry = entries.nextElement();
+				InputStream stream = zipFile.getInputStream(entry);
+				if (entry.getName().equals(HostProperties.PRINTER_CONFIG_PROPERTIES)) {
+					newFile = new File(HostProperties.Instance().PRINTER_DIR, HostProperties.CONFIG_PROPERTIES);
+				} else if (entry.getName().equals(HostProperties.CONFIG_PROPERTIES) ||
+						entry.getName().equals(NORMAL_LOG_FILE) ||
+						entry.getName().equals(DEBUG_LOG_FILE) ||
+						entry.getName().equals(TEST_LOG_FILE)) {
+					newFile = new File(HostProperties.CONFIG_PROPERTIES);
+				} else if (entry.getName().endsWith(HostProperties.PROFILES_EXTENSION)) {
+					newFile = new File(HostProperties.Instance().PROFILES_DIR, entry.getName());
+				} else if (entry.getName().endsWith(HostProperties.MACHINE_EXTENSION)) {
+					newFile = new File(HostProperties.Instance().MACHINE_DIR, entry.getName());
+				} else if (entry.getName().endsWith(HostProperties.PRINTER_EXTENSION)) {
+					newFile = new File(HostProperties.Instance().PRINTER_DIR, entry.getName());
+				} else if (entry.getName().endsWith(HostProperties.CUSTOMIZER_EXTENSION)) {
+					newFile = new File(HostProperties.Instance().CUSTOMIZER_DIR, entry.getName());
+				}
+				
+				if (newFile != null) {
+					FileOutputStream newOutput = null;
+					try {
+						newOutput = new FileOutputStream(newFile);
+						IOUtils.copy(stream, newOutput);
+					} finally {
+						if (newOutput != null) {
+							try {newOutput.close();} catch (IOException e) {}
+						}
+					}
+				}
+				
+				try {stream.close();} catch (IOException e) {}
+			}
+			return Response.status(Response.Status.OK).entity(new MachineResponse("Photonic3DRestore", true, "Please restart Photonic3D for these settings to take effect.")).build();
+    	} catch (IOException e) {
+			String failure = "IO Failure while building temporary zip file.";
+			logger.error(failure, e);
+			return Response.status(Response.Status.BAD_REQUEST).entity(new MachineResponse("Photonic3DRestore", false, failure)).build();
+    	} finally {
+			if (output != null) {
+				try {output.close();} catch (IOException e) {}
+			}
+
+    		try {zipFile.close();} catch (IOException e) {}
+    		
+    		if (tempFile.exists()) {
+        		tempFile.delete();
+    		}
+    	}
+	}
+
     @ApiOperation(value="Retrieves all of the supported file types that are returned from the each of the org.area515.resinprinter.job.PrintFileProcessor.getFileExtensions()."
     		+ SwaggerMetadata.PRINT_FILE_PROCESSOR)
     @ApiResponses(value = {
@@ -238,7 +338,7 @@ public class MachineService {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Set<String> getSupportedFileTypes() {
 		Set<String> fileTypes = new HashSet<String>();
-		for (PrintFileProcessor processor : HostProperties.Instance().getPrintFileProcessors()) {
+		for (PrintFileProcessor<?, ?> processor : HostProperties.Instance().getPrintFileProcessors()) {
 			fileTypes.addAll(Arrays.asList(processor.getFileExtensions()));
 		}
 		return fileTypes;
@@ -295,7 +395,7 @@ public class MachineService {
 		ZipOutputStream zipOutputStream = null;
 		try {
 			zipOutputStream = new ZipOutputStream(new FileOutputStream(zippedFile));
-			String logFiles[] = new String[]{"log.scrout", "log.screrr", "log.out", "log.err", "cwh.log", "log4j2.properties", "debuglog4j2.properties", "testlog4j2.properties"};
+			String logFiles[] = new String[]{"log.scrout", "log.screrr", "log.out", "log.err", "cwh.log", NORMAL_LOG_FILE, DEBUG_LOG_FILE, TEST_LOG_FILE};
 			for (String logFile : logFiles) {
 				File file = new File(logFile);
 				if (file.exists()) {
@@ -441,6 +541,53 @@ public class MachineService {
 		} catch (InstantiationException | IllegalAccessException e) {
 			logger.error("Error connecting to WifiSSID:" + network.getSsid(), e);
 		}
+	 }
+
+    @ApiOperation(value = "Enumerates Printer interfaces' IPs, MACs and HostName.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = SwaggerMetadata.SUCCESS),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	 @GET
+	 @Path("getNetworkHostConfiguration")
+	 @Produces(MediaType.APPLICATION_JSON)
+	 public Map<String, ?> getNetworkHostConfiguration() {
+		Class<NetworkManager> managerClass = HostProperties.Instance().getNetworkManagerClass();
+		try {
+			NetworkManager networkManager = managerClass.newInstance();
+			Map<String, Object> networkHost = new HashMap<>();
+			networkHost.put("MACs", networkManager.getMACs());
+			networkHost.put("IPs", networkManager.getIPs());
+			networkHost.put("Hostname",networkManager.getHostname());
+			return networkHost;
+		} catch (InstantiationException | IllegalAccessException e) {
+			logger.error("Error retrieving network host configuration", e);
+			return null;
+		}
+	 }
+    
+    @ApiOperation(value="Changes the hostname of the computer running Photonic.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("setNetworkHostname/{hostname}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse startProjector(@PathParam("hostname") String host) {
+    	if (Pattern.matches("^[a-zA-Z0-9\\-]+$", host)){
+    		try {
+    	    	Class<NetworkManager> managerClass = HostProperties.Instance().getNetworkManagerClass();
+    			NetworkManager networkManager = managerClass.newInstance();
+    			networkManager.setHostname(host);
+    			logger.debug("Set new hostname to: " + host);
+    			return new MachineResponse("setNetworkHostname", true, "Changed hostname to:" + host);
+    		} catch (InstantiationException | IllegalAccessException e) {
+    			logger.error("Error setting new hostname", e);
+    			return new MachineResponse("setNetworkHostname", false, e.getMessage());
+    		}
+    	} else{
+    		logger.error("Error setting new hostname - RegEx failed");
+    		throw new IllegalArgumentException("Hostname \""+host+"\" contained invalid characters. Please retry with uppercase, lowercase and numeric characters and hyphens [-] only.");
+    	}
     }
 	
     @ApiOperation(value = "Enumerates the list of serial ports available on the Photonic 3D host.")
@@ -476,17 +623,25 @@ public class MachineService {
 		 
 		 return deviceStrings;
 	}
-	 
     
-    
-	@ApiOperation(value = "Enumerates the list of machine configurations that are available on the Photonic 3D host.")
+	@ApiOperation(value = "Enumerates the list of printer drivers that are available on the Photonic 3D host.")
 	@ApiResponses(value = {
 	        @ApiResponse(code = 200, message = SwaggerMetadata.SUCCESS),
 	        @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
 	@GET
+	@Path("printerDrivers/list")
+	public List<PrinterDriver> getPrinterDrivers() {
+		return HostProperties.Instance().getPrinterDrivers();
+	}
+	
+	@ApiOperation(value = "Enumerates the list of machine configurations that are available on the Photonic 3D host.")
+	@ApiResponses(value = {
+	    @ApiResponse(code = 200, message = SwaggerMetadata.SUCCESS),
+	    @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
 	@Path("machineConfigurations/list")
 	public List<MachineConfig> getMachineConfigurations() {
-		return HostProperties.Instance().getConfigurations(HostProperties.Instance().MACHINE_DIR, HostProperties.MACHINE_EXTENSION, MachineConfig.class);
+	return HostProperties.Instance().getConfigurations(HostProperties.Instance().MACHINE_DIR, HostProperties.MACHINE_EXTENSION, MachineConfig.class);
 	}
 	
 	@ApiOperation(value = "Save a machine configuration to the machine config directory of Photonic 3D host.")

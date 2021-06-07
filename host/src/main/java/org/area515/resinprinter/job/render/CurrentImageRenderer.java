@@ -27,10 +27,6 @@ public abstract class CurrentImageRenderer implements Callable<RenderingContext>
 		this.imageIndexToBuild = imageIndexToBuild;
 	}
 	
-	public BufferedImage buildImage(int renderedWidth, int renderedHeight) {
-		return new BufferedImage(renderedWidth, renderedHeight, BufferedImage.TYPE_4BYTE_ABGR);
-	}
-	
 	public RenderingContext call() throws JobManagerException {
 		long startTime = System.currentTimeMillis();
 		RenderingContext preImageCache = aid.cache.getOrCreateIfMissing(imageIndexToBuild);

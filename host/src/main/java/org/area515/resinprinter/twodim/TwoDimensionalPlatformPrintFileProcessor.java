@@ -112,6 +112,7 @@ public abstract class TwoDimensionalPlatformPrintFileProcessor<T,E> extends Abst
 	@Override
 	public JobStatus processFile(PrintJob printJob) throws Exception {
 		TwoDimensionalDataAid dataAid = (TwoDimensionalDataAid)getDataAid(printJob);
+		boolean footerAttempted = false;
 		try {
 			performHeader(dataAid);
 			setupSlices(printJob, dataAid, getSuggestedPlatformLayerCount(dataAid), getSuggested2DExtrusionLayerCount(dataAid));
@@ -145,9 +146,19 @@ public abstract class TwoDimensionalPlatformPrintFileProcessor<T,E> extends Abst
 				}
 			}
 			
-			return performFooter(dataAid);
+			try {
+				return performFooter(dataAid);
+			} finally {
+				footerAttempted = true;
+			}
 		} finally {
-			clearDataAid(dataAid.printJob);
+			try {
+				if (!footerAttempted && dataAid != null) {
+					performFooter(dataAid);
+				}
+			} finally {
+				clearDataAid(printJob);
+			}
 		}
 	}
 	

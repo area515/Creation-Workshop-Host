@@ -29,7 +29,7 @@ before_deploy:
 deploy:
   - provider: releases
     skip_cleanup: true
-    prerelease: false
+    prerelease: true
     api_key: "$GITHUB_ACCESS_TOKEN"
     file_glob: true
     file: "${RELEASE_PKG_FILE}"

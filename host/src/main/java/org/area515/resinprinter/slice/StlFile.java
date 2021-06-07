@@ -372,7 +372,7 @@ public abstract class StlFile<T,P> {
 		if (expectedByteCount == filesize)*/
 		
 		for (int t = 0; t < sampleSize.length; t++) {
-			int currentByte = sampleSize[t];
+			int currentByte = sampleSize[t] & 0xFF;
 			if (currentByte > 127) {
 				return false;
 			}

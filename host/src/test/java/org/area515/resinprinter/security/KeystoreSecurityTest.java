@@ -49,9 +49,11 @@ public class KeystoreSecurityTest {
 	@BeforeClass
 	public static void setupCryptos() throws Exception {
 		NotificationManager.start(null, Mockito.mock(ServerContainer.class));
-		user1Keystore = new File("user1.keystore");
-		user2Keystore = new File("user2.keystore");
-		
+		user1Keystore = File.createTempFile("user1","keystore");
+		user1Keystore.deleteOnExit();
+		user2Keystore = File.createTempFile("user2","keystore");
+		user2Keystore.deleteOnExit();
+
 		user1Keystore.delete();
 		user2Keystore.delete();
 		

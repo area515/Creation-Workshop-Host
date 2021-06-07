@@ -33,13 +33,14 @@ public class DispManXDevice implements GraphicsOutputInterface {
     //For dispmanx
     private int imageResourceHandle;
     private int imageElementHandle;
-    //For Image
+    
+    //For Calibration and Grid
+    private NativeMemoryBackedBufferedImage calibrationAndGridImage;
+    
+    //This is a cache for when callers use this class without a NativeMemoryBackedBufferedImage
     private Memory imagePixels;
     private int imageWidth;
     private int imageHeight;
-    //For Calibration and Grid
-    private Memory calibrationAndGridPixels;
-    private BufferedImage calibrationAndGridImage;
     
     public DispManXDevice(String displayName, SCREEN screen) throws InappropriateDeviceException {
 		this.displayName = displayName;
@@ -115,7 +116,6 @@ public class DispManXDevice implements GraphicsOutputInterface {
 			logger.info("dispose screen");
 			removeAllElementsFromScreen();
 	    	logger.info("vc_dispmanx_display_close result:" + DispManX.INSTANCE.vc_dispmanx_display_close(displayHandle));
-	    	calibrationAndGridPixels = null;
 	    	imagePixels = null;
 	    	calibrationAndGridImage = null;
 	    	imageWidth = 0;
@@ -193,7 +193,7 @@ public class DispManXDevice implements GraphicsOutputInterface {
 			return;
 		}
 		
-		calibrationAndGridImage = new BufferedImage(bounds.width, bounds.height, BufferedImage.TYPE_INT_ARGB);
+		calibrationAndGridImage = NativeMemoryBackedBufferedImage.newInstance(bounds.width, bounds.height);
 	}
 	
 	@Override
@@ -204,7 +204,7 @@ public class DispManXDevice implements GraphicsOutputInterface {
 		Graphics2D graphics = (Graphics2D)calibrationAndGridImage.createGraphics();
 		GraphicsOutputInterface.showCalibration(graphics, bounds, xPixels, yPixels);
 		graphics.dispose();
-		calibrationAndGridPixels = showImage(calibrationAndGridPixels, calibrationAndGridImage);
+		showImage(null, calibrationAndGridImage);
 		logger.debug("Calibration realized:{}", () -> Log4jUtil.completeTimer(IMAGE_REALIZE_TIMER));
 	}
 	
@@ -217,20 +217,30 @@ public class DispManXDevice implements GraphicsOutputInterface {
 		GraphicsOutputInterface.showGrid(graphics, bounds, pixels);
 		graphics.dispose();
 		
-		calibrationAndGridPixels = showImage(calibrationAndGridPixels, calibrationAndGridImage);		
+		showImage(null, calibrationAndGridImage);		
 		logger.debug("Grid realized:{}", () -> Log4jUtil.completeTimer(IMAGE_REALIZE_TIMER));
 	}
 	
 	private Memory showImage(Memory memory, BufferedImage image) {
 		activityLock.lock();
 		try {
-			showBlankImage();//delete the old resources because we are creating new ones...
+			showBlankImage();//delete the old resources, this is lightning fast...
 			
 	        IntByReference imageWidth = new IntByReference();
 	        IntByReference imageHeight = new IntByReference();
 	        IntByReference imagePitch = new IntByReference();
 	        
-	        memory = loadBitmapARGB8888(image, memory, imageWidth, imageHeight, imagePitch);
+	        if (!(image instanceof NativeMemoryBackedBufferedImage)) {
+	        	memory = loadBitmapARGB8888(image, memory, imageWidth, imageHeight, imagePitch);
+	        } else {
+	        	memory = ((NativeMemoryBackedBufferedImage)image).getMemory();
+	    		int bytesPerPixel = 4;
+	    		int pitch = getPitch(bytesPerPixel * image.getWidth(), 32);
+	    		imagePitch.setValue(pitch);
+	    		imageWidth.setValue(image.getWidth());
+	    		imageHeight.setValue(image.getHeight());
+	        }
+	        
 	        VC_RECT_T.ByReference sourceRect = new VC_RECT_T.ByReference();
 	        DispManX.INSTANCE.vc_dispmanx_rect_set(sourceRect, 0, 0, imageWidth.getValue()<<16, imageHeight.getValue()<<16);//Shifting by 16 is a zoom factor of zero
 	        
@@ -243,6 +253,8 @@ public class DispManXDevice implements GraphicsOutputInterface {
 	        if (imageResourceHandle == 0) {
 	        	throw new IllegalArgumentException("Couldn't create resourceHandle for dispmanx");
 	        }
+	        
+	        logger.debug("ScreenWidth:" + bounds.getWidth() + " ScreenHeight:" + bounds.getHeight() + " ImageWidth:"+ imageWidth.getValue() + " ImageHeight:" + imageHeight.getValue());
 	        
 	        VC_RECT_T.ByReference sizeRect = new VC_RECT_T.ByReference();
 	        DispManX.INSTANCE.vc_dispmanx_rect_set(sizeRect, 0, 0, imageWidth.getValue(), imageHeight.getValue());
@@ -336,5 +348,10 @@ public class DispManXDevice implements GraphicsOutputInterface {
 	@Override
 	public GraphicsOutputInterface initializeDisplay(String displayId, PrinterConfiguration configuration) {
 		return this;
+	}
+
+	@Override
+	public BufferedImage buildBufferedImage(int x, int y) {
+		return NativeMemoryBackedBufferedImage.newInstance(x,  y);
 	}
 }

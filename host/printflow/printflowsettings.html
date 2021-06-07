@@ -1,0 +1,95 @@
+<html>
+    <head>
+        <title>Settings</title>
+        <style>
+		
+		.hwrev { 
+			font-size: 15px;
+			padding-bottom: 5px;
+		}
+		.swrev { 
+			font-size: 15px;
+			padding-bottom: 5px;
+		}
+		.printtimeelapsed { 
+			font-size: 15px;
+			padding-bottom: 5px;
+		}
+		.serialno { 
+			font-size: 15px;
+			padding-bottom: 5px;
+		}
+
+        </style>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+
+        <!-- jQuery library -->
+        <script src="../jquery/jquery.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="../bootstrap/js/bootstrap.min.js"></script>
+
+        <!-- Latest v1 Angular -->
+        <script src="../angular/js/angular.min.js"></script>
+
+        <script src="js/moment.min.js"></script>
+		
+		<script src="js/printflow.js"></script>
+		<script src="js/printerconfig.js"></script>
+		
+		<script src="js/js.cookie.js"></script>
+		
+		<link href="css/printflow.css" rel="stylesheet">
+    </head>
+    <body style="background-color: black;" onload="init();">
+		<script>
+			function init(){
+				startpage();
+				var softwareRevision=0;
+				$.getJSON('../services/settings/releaseTagName').done(function (data){
+							softwareRevision=data;
+							document.getElementById("swrev").innerHTML="Current Printer Software:<br/>"+String(softwareRevision);
+						});
+				if (typeof printerHardwareRev === 'undefined') {
+					printerHardwareRev = "Version 1";
+					// assume it's version 1 unless set otherwise
+				}
+				
+				if (typeof printerSerialNo === 'undefined') {
+					printerSerialNo = "unset";
+					// state it's unset unless it's set.
+				}
+				document.getElementById("serialno").innerHTML="Serial Number:<br />"+String(printerSerialNo);
+				document.getElementById("hwrev").innerHTML="Hardware Revision:<br />"+String(printerHardwareRev);
+			}
+		</script>
+        <div class="screen">
+            <div class="main">
+				<img src="images/settings.png" usemap="settings" class="uilayer">
+				<map name="settings">
+					<area  alt="" title="" href="swupdate.html" shape="rect" coords="273,91,588,153" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="wifisettings.html" shape="rect" coords="273,152,589,217" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="syslog.html" shape="rect" coords="273,217,589,282" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="printflowsettings.html" shape="poly" coords="160,40,137,45,118,58,105,77,100,100,105,123,118,142,137,155,160,160,183,155,202,142,215,123,220,100,215,77,202,58,183,45" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="maintain.html" shape="poly" coords="65,132,52,135,40,142,33,154,30,167,33,180,40,192,52,199,65,202,78,199,90,192,97,180,100,167,97,154,90,142,78,135" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="printflow.html" shape="poly" coords="48,16,35,19,25,26,18,36,15,49,18,62,25,72,35,79,48,82,61,79,71,72,78,62,81,49,78,36,71,26,61,19" style="outline:none;" target="_self"     />
+				</map>
+				<div name="info" id="info" class="info">
+					<div name="hwrev" id="hwrev" class="hwrev">Hardware Revision:<br /><i>Fetching...</i></div>
+					<div name="swrev" id="swrev" class="swrev"></div>
+					<!--<div name="printtimeelapsed" id="printtimeelapsed" class="printtimeelapsed">Total Time Printing:<br><script>document.write(moment().format("h:mm:ss"));</script></div> -->
+					<div name="serialno" id="serialno" class="serialno">Serial Number:<br /><i>Fetching...</i></div>
+				</div>
+				<img name="wifi" id="wifi" class="wifi" src="images/pixel.png">
+				<img name="printerstatus" id="printerstatus" class="printerstatus" src="images/pixel.png">
+				
+				<img name="homehighlight" id="homehighlight" class="homehighlight" src="images/homehighlightANIM.png" onClick="location.href='printflow.html';">
+				<img name="bigbuttonhighlight" id="bigbuttonhighlight" class="bigbuttonhighlight" src="images/bigbuttonANIM.png" onClick="location.href='printflowsettings.html';">
+				<img name="smallbuttonhighlight" id="smallbuttonhighlight" class="smallbuttonhighlight" src="images/homehighlightANIM.png" onClick="location.href='maintain.html';">
+            </div>
+        </div>
+
+	
+    </body>
+</html>

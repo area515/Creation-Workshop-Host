@@ -1,0 +1,115 @@
+{
+   "configuration":{
+      "name":"Direct Stepper Control",
+      "machineConfig":{
+         "name":"Direct Stepper Control",
+         "FileVersion":0,
+         "PlatformXSize":134,
+         "PlatformYSize":75,
+         "PlatformZSize":185,
+         "MaxXFeedRate":0,
+         "MaxYFeedRate":0,
+         "MaxZFeedRate":0,
+         "XRenderSize":1824,
+         "YRenderSize":984,
+         "MotorsDriverConfig":{
+            "DriverType":"Javascript",
+            "ComPortSettings":{
+               "PortName":"GCode response simulation",
+               "Speed":115200,
+               "Databits":8,
+               "Parity":"None",
+               "Stopbits":"One",
+               "Handshake":"None"
+            }
+         },
+         "MonitorDriverConfig":{
+            "DLP_X_Res":1600,
+            "DLP_Y_Res":900,
+            "MonitorID":"DISPLAY1",
+            "OSMonitorID":"Last available display",
+            "DisplayCommEnabled":false,
+            "ComPortSettings":{
+               "Handshake":"None"
+            },
+            "MonitorTop":0,
+            "MonitorLeft":0,
+            "MonitorRight":0,
+            "MonitorBottom":0,
+            "UseMask":false
+         },
+         "FooterExecutionHandling":"OnSuccess"
+      },
+      "slicingProfile":{
+         "gCodePause":null,
+         "gCodeResume":null,
+         "gCodeHeader":"//https://github.com/Pi4J/pi4j/blob/master/pi4j-example/src/main/java/StepperMotorGpioExample.java\nvar gpioFactoryClass = Java.type(\"com.pi4j.io.gpio.GpioFactory\");\nvar gpio = gpioFactoryClass.instance();\n\nvar pins = [gpio.provisionDigitalOutputPin(RaspiPin.GPIO_00, PinState.LOW),\n\tgpio.provisionDigitalOutputPin(RaspiPin.GPIO_01, PinState.LOW),\n\tgpio.provisionDigitalOutputPin(RaspiPin.GPIO_02, PinState.LOW),\n\tgpio.provisionDigitalOutputPin(RaspiPin.GPIO_03, PinState.LOW)];\n\nvar single_step_sequence = Java.to([parseInt('0001', 2),\n\tparseInt('0010', 2),\n\tparseInt('0100', 2),\n\tparseInt('1000', 2)], \"byte[]\");\n\nvar motor = new com.pi4j.component.motor.impl.GpioStepperMotorComponent(pins);\nmotor.setStepInterval(2);\nmotor.setStepSequence(single_step_sequence);\nmotor.setStepsPerRevolution(2038);\nmotor.step(2038);\n\"success\"",
+         "gCodeFooter":"",
+         "gCodePreslice":null,
+         "gCodeLift":"",
+         "gCodeShutter":null,
+         "name":"Direct Stepper Control",
+         "zliftSpeedGCode":"",
+         "zliftDistanceGCode":"",
+         "selectedInkConfigIndex":0,
+         "DotsPermmX":13.611940298507463,
+         "DotsPermmY":13.12,
+         "XResolution":1824,
+         "YResolution":984,
+         "BlankTime":0,
+         "PlatformTemp":0,
+         "ExportSVG":0,
+         "Export":false,
+         "ExportPNG":false,
+         "Direction":"Bottom_Up",
+         "LiftDistance":5,
+         "SlideTiltValue":0,
+         "AntiAliasing":false,
+         "UseMainLiftGCode":false,
+         "AntiAliasingValue":0,
+         "LiftFeedRate":50,
+         "LiftRetractRate":0,
+         "FlipX":false,
+         "FlipY":true,
+         "ZLiftDistanceCalculator":"",
+         "ZLiftSpeedCalculator":"",
+         "ProjectorGradientCalculator":"",
+         "ExposureTimeCalculator":"",
+         "SelectedInk":"Default",
+         "MinTestExposure":0,
+         "TestExposureStep":0,
+         "InkConfig":[
+            {
+               "PercentageOfPrintMaterialConsideredEmpty":10,
+               "Name":"Default",
+               "SliceHeight":0.1,
+               "LayerTime":8000,
+               "FirstLayerTime":20000,
+               "NumberofBottomLayers":10,
+               "ResinPriceL":65
+            }
+         ],
+         "TwoDimensionalSettings":{
+            "Font":{
+               "Name":"Abaddon™",
+               "Size":200
+            },
+            "PlatformHeightMM":1.5,
+            "ExtrusionHeightMM":1.5,
+            "PlatformCalculator":""
+         }
+      },
+      "MachineConfigurationName":"Direct Stepper Control",
+      "SlicingProfileName":"Direct Stepper Control",
+      "AutoStart":false,
+      "Calibrated":false
+   },
+   "started":false,
+   "shutterOpen":false,
+   "currentSlicePauseTime":0,
+   "displayDeviceID":null,
+   "status":"Ready",
+   "printPaused":false,
+   "cachedBulbHours":null,
+   "printInProgress":false
+}

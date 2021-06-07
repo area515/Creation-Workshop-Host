@@ -19,6 +19,7 @@ public interface GraphicsOutputInterface {
 	public Rectangle getBoundary();
 	public String getIDstring();
 	public String buildIDString();
+	public BufferedImage buildBufferedImage(int x, int y);
 	public GraphicsOutputInterface initializeDisplay(String displayId, PrinterConfiguration configuration);
 	
 	public static void showGrid(Graphics2D g2, Rectangle screenSize, int gridSquareSize) {

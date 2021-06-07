@@ -13,6 +13,7 @@ import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.area515.resinprinter.display.InappropriateDeviceException;
@@ -20,6 +21,7 @@ import org.area515.resinprinter.job.AbstractPrintFileProcessor.DataAid;
 import org.area515.resinprinter.printer.Printer;
 import org.area515.resinprinter.printer.SlicingProfile.InkConfig;
 import org.area515.resinprinter.services.PrinterService;
+import org.area515.util.DynamicJSonSettings;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -52,6 +54,8 @@ public class PrintJob {
 	private Map<String, CompiledScript> scriptsByName = new HashMap<>();
 
 	private Customizer customizer;
+	@XmlElement(name="printableContributions")
+	private DynamicJSonSettings contributions;
 
 	public PrintJob(File jobFile) {
 		this.jobFile = jobFile;
@@ -61,11 +65,19 @@ public class PrintJob {
 		return id;
 	}
 	
+	@XmlTransient
+	public DynamicJSonSettings getContributions() {
+		return contributions;
+	}
+	public void setContributions(DynamicJSonSettings contributions) {
+		this.contributions = contributions;
+	}
+
 	@JsonIgnore
-	DataAid getDataAid() {
+	public DataAid getDataAid() {
 		return dataAid;
 	}
-	void setDataAid(DataAid dataAid) {
+	public void setDataAid(DataAid dataAid) {
 		this.dataAid = dataAid;
 	}
 
@@ -185,7 +197,9 @@ public class PrintJob {
 		if (futureJobStatus != null && (futureJobStatus.isDone() || futureJobStatus.isCancelled())) {
 			try {
 				return futureJobStatus.get();
-			} catch (InterruptedException | ExecutionException e) {
+			} catch (InterruptedException e) {
+			} catch (ExecutionException e) {
+				return JobStatus.Failed;
 			}
 		}
 
@@ -256,7 +270,7 @@ public class PrintJob {
 		try {
 			overrideZLiftDistance = true;
 			this.zLiftDistance = zLiftDistance;
-			printer.getGCodeControl().executeGCodeWithTemplating(this, printer.getConfiguration().getSlicingProfile().getZLiftDistanceGCode(), true);
+			printer.getPrinterController().executeCommands(this, printer.getConfiguration().getSlicingProfile().getZLiftDistanceGCode(), true);
 		} catch (InappropriateDeviceException e) {
 			throw e;
 		}
@@ -292,7 +306,7 @@ public class PrintJob {
 		try {
 			this.overrideZLiftSpeed = true;
 			this.zLiftSpeed = zLiftSpeed;
-			printer.getGCodeControl().executeGCodeWithTemplating(this, printer.getConfiguration().getSlicingProfile().getZLiftSpeedGCode(), true);
+			printer.getPrinterController().executeCommands(this, printer.getConfiguration().getSlicingProfile().getZLiftSpeedGCode(), true);
 		} catch (InappropriateDeviceException e) {
 			throw e;
 		}

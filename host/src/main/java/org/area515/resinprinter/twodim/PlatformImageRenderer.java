@@ -35,7 +35,7 @@ public class PlatformImageRenderer extends CurrentImageRenderer {
 	
 	protected BufferedImage getStarterImage(BufferedImage platformImage) {
 		if (platformImage == null) {
-			return buildImage(aid.xResolution, aid.yResolution);
+			return aid.printer.createBufferedImageFromGraphicsOutputInterface(aid.xResolution, aid.yResolution);
 		}
 
 		Graphics2D g = (Graphics2D)platformImage.getGraphics();

@@ -1,0 +1,120 @@
+<html>
+    <head>
+        <title>Main Menu</title>
+        <style>
+		
+		.print{
+			position: absolute; 
+			top: 130px; 
+			left: 328px;
+			animation-iteration-count: infinite;
+			animation-name: rotate;
+			animation-duration: 2s;
+			animation-timing-function: linear;
+			-webkit-animation-name: rotate;
+			-webkit-animation-duration: 2s;
+			-webkit-animation-timing-function: linear;
+			-webkit-animation-iteration-count: infinite;
+			z-index: 5;
+			user-drag: none; 
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-drag: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+		
+		
+		.maintain{
+			position: absolute; 
+			top: 58px; 
+			left: 532px;
+			animation-iteration-count: infinite;
+			animation-name: rotate;
+			animation-duration: 2s;
+			animation-timing-function: linear;
+			
+			-webkit-animation-name: rotate;
+			-webkit-animation-duration: 2s;
+			-webkit-animation-timing-function: linear;
+			-webkit-animation-iteration-count: infinite;
+			
+			user-drag: none; 
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-drag: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+				
+		.settings{
+			position: absolute; 
+			top: 278px; 
+			left: 532px;
+			transform: rotate(180deg);
+			
+			animation-iteration-count: infinite;
+			animation-name: rotate;
+			animation-duration: 2s;
+			animation-timing-function: linear;
+			
+			-webkit-animation-name: rotate;
+			-webkit-animation-duration: 2s;
+			-webkit-animation-timing-function: linear;
+			-webkit-animation-iteration-count: infinite;
+			z-index: 5;
+			
+			user-drag: none; 
+			user-select: none;
+			-moz-user-select: none;
+			-webkit-user-drag: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+		
+
+		
+        </style>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+
+        <!-- jQuery library -->
+        <script src="../jquery/jquery.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="../bootstrap/js/bootstrap.min.js"></script>
+
+        <!-- Latest v1 Angular -->
+        <script src="../angular/js/angular.min.js"></script>
+
+        <script src="js/moment.min.js"></script>
+		
+		<script src="js/printflow.js"></script>
+		<script src="js/printerconfig.js"></script>
+		
+		<script src="js/js.cookie.js"></script>
+		
+		<link href="css/printflow.css" rel="stylesheet">
+    </head>
+    <body style="background-color: black;" onload="startpage();">
+        <div class="screen">
+            <div class="main">
+				<img src="images/mainmenu.png" usemap="mainmenu" class="uilayer">
+				<map name="mainmenu">
+					<area alt="" title="" href="printflowprintables.html" shape="poly" coords="411,104,384,109,362,125,346,147,341,174,346,201,362,223,384,239,411,244,438,239,460,223,476,201,481,174,476,147,460,125,438,109" style="outline:none;" target="_self" onClick="location.href='printables.html';"    />
+					<area alt="" title="" href="maintain.html" shape="poly" coords="596,25,573,30,554,43,541,62,536,85,541,108,554,127,573,140,596,145,619,140,638,127,651,108,656,85,651,62,638,43,619,30" style="outline:none;" target="_self" onClick="location.href='maintain.html';"    />
+					<area alt="" title="" href="printflowsettings.html" shape="poly" coords="598,247,575,252,556,265,543,284,538,307,543,330,556,349,575,362,598,367,621,362,640,349,653,330,658,307,653,284,640,265,621,252" style="outline:none;" target="_self" onClick="location.href='printflowsettings.html';"    />
+				</map>
+				<img name="wifi" id="wifi" class="wifi" src="images/pixel.png">
+				<img name="printerstatus" id="printerstatus" class="printerstatus" src="images/pixel.png">
+				<img name="print" id="print" class="print" src="images/menumainbuttonANIM.png" onClick="location.href='printflowprintables.html';">
+				<img name="maintain" id="maintain" class="maintain" src="images/menusubbuttonANIM.png" onClick="location.href='maintain.html';">
+				<img name="settings" id="settings" class="settings" src="images/menusubbuttonANIM.png" onClick="location.href='printflowsettings.html';">
+				<img name="maintopconnector" id="maintopconnector" class="maintopconnector" src="images/maintopconnector.png">
+				<img name="mainbotconnector" id="mainbotconnector" class="mainbotconnector" src="images/mainbotconnector.png">
+            </div>
+        </div>
+
+	
+    </body>
+</html>

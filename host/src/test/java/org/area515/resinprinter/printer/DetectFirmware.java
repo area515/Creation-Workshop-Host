@@ -49,15 +49,6 @@ public class DetectFirmware {
 						break;
 					}
 				}
-				/*port = new RXTXEventBasedCommPort();
-				for (int t = 0; t < 10; t++) {
-					logger.info("  {}. RXTXEventBasedCommPort firmware detection:{}", t, SerialManager.Instance().is3dFirmware(port, newComPortSettings));
-				}
-				
-				port = new RXTXSynchronousReadBasedCommPort();
-				for (int t = 0; t < 10; t++) {
-					logger.info("  {}. RXTXSynchronousReadBasedCommPort firmware detection:{}", t, SerialManager.Instance().is3dFirmware(port, newComPortSettings));
-				}*/
 			}
 		}
 		

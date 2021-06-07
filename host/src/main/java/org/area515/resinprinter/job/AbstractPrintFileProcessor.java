@@ -25,6 +25,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.area515.resinprinter.display.ControlFlow;
 import org.area515.resinprinter.display.InappropriateDeviceException;
 import org.area515.resinprinter.exception.NoPrinterFoundException;
 import org.area515.resinprinter.exception.SliceHandlingException;
@@ -244,6 +245,28 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		CustomizerService.INSTANCE.addOrUpdateCustomizer(customizer);
 	}
 	
+	public void performPauseGCode(DataAid aid) throws InappropriateDeviceException, IOException {
+		if (aid == null) {
+			throw new IllegalStateException("initializeDataAid must be called before this method");
+		}
+		
+		//Perform the gcode associated with the printer pause function
+		if (aid.slicingProfile.getgCodePause() != null && aid.slicingProfile.getgCodePause().trim().length() > 0) {
+			aid.printer.getPrinterController().executeCommands(aid.printJob, aid.slicingProfile.getgCodePause(), true);
+		}
+	}
+	
+	public void performResumeGCode(DataAid aid) throws InappropriateDeviceException, IOException {
+		if (aid == null) {
+			throw new IllegalStateException("initializeDataAid must be called before this method");
+		}
+		
+		//Perform the gcode associated with the printer resume function
+		if (aid.slicingProfile.getgCodeResume() != null && aid.slicingProfile.getgCodeResume().trim().length() > 0) {
+			aid.printer.getPrinterController().executeCommands(aid.printJob, aid.slicingProfile.getgCodeResume(), true);
+		}
+	}
+	
 	public void performHeader(DataAid aid) throws InappropriateDeviceException, IOException {
 		if (aid == null) {
 			throw new IllegalStateException("initializeDataAid must be called before this method");
@@ -260,7 +283,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		if (aid.slicingProfile.getgCodeHeader() != null && 
 			aid.slicingProfile.getgCodeHeader().trim().length() > 0 &&
 			aid.customizer.getNextStep() == PrinterStep.PerformHeader) {
-			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeHeader(), true);
+			aid.printer.getPrinterController().executeCommands(aid.printJob, aid.slicingProfile.getgCodeHeader(), true);
 			moveToNextPrinterStep(aid.customizer, PrinterStep.PerformPreSlice);
 		}
 		
@@ -300,7 +323,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		//Perform two actions at once here:
 		// 1. Pause if the user asked us to pause
 		// 2. Get out if the print is cancelled
-		if (!aid.printer.waitForPauseIfRequired()) {
+		if (!aid.printer.waitForPauseIfRequired(this, aid)) {
 			return aid.printer.getStatus();
 		}
 
@@ -308,7 +331,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		if (aid.slicingProfile.getgCodePreslice() != null && 
 			aid.slicingProfile.getgCodePreslice().trim().length() > 0 && 
 			aid.customizer.getNextStep() == PrinterStep.PerformPreSlice) {
-			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodePreslice(), true);
+			aid.printer.getPrinterController().executeCommands(aid.printJob, aid.slicingProfile.getgCodePreslice(), true);
 		}
 		
 		moveToNextPrinterStep(aid.customizer, PrinterStep.PerformExposure);
@@ -407,7 +430,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		 	
 		if (aid.slicingProfile.getgCodeShutter() != null && aid.slicingProfile.getgCodeShutter().trim().length() > 0) {
 			aid.printer.setShutterOpen(true);
-			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeShutter(), true);
+			aid.printer.getPrinterController().executeCommands(aid.printJob, aid.slicingProfile.getgCodeShutter(), true);
 		}
 		
 		//Sleep for the amount of time that we are exposing the resin.
@@ -415,7 +438,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		
 		if (aid.slicingProfile.getgCodeShutter() != null && aid.slicingProfile.getgCodeShutter().trim().length() > 0) {
 			aid.printer.setShutterOpen(false);
-			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeShutter(), false);
+			aid.printer.getPrinterController().executeCommands(aid.printJob, aid.slicingProfile.getgCodeShutter(), false);
 		}
 
 		//Blank the screen
@@ -436,7 +459,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		//Perform two actions at once here:
 		// 1. Pause if the user asked us to pause
 		// 2. Get out if the print is cancelled
-		if (!aid.printer.waitForPauseIfRequired()) {
+		if (!aid.printer.waitForPauseIfRequired(this, aid)) {
 			return aid.printer.getStatus();
 		}
 		
@@ -453,14 +476,14 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 			}
 		}
 		if (aid.slicingProfile.getZLiftDistanceGCode() != null && aid.slicingProfile.getZLiftDistanceGCode().trim().length() > 0) {
-			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getZLiftDistanceGCode(), true);
+			aid.printer.getPrinterController().executeCommands(aid.printJob, aid.slicingProfile.getZLiftDistanceGCode(), true);
 		}
 		if (aid.slicingProfile.getZLiftSpeedGCode() != null && aid.slicingProfile.getZLiftSpeedGCode().trim().length() > 0) {
-			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getZLiftSpeedGCode(), true);
+			aid.printer.getPrinterController().executeCommands(aid.printJob, aid.slicingProfile.getZLiftSpeedGCode(), true);
 		}
 		
 		//Perform the lift gcode manipulation
-		aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeLift(), true);
+		aid.printer.getPrinterController().executeCommands(aid.printJob, aid.slicingProfile.getgCodeLift(), true);
 		
 		Double buildArea = getBuildAreaMM(aid.printJob);
 		// Log slice settings (in JSON for extraction and processing)
@@ -480,16 +503,23 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 	}
 
 	public JobStatus performFooter(DataAid aid) throws IOException, InappropriateDeviceException {
+		logger.info("gCode footer started");
 		if (aid == null) {
 			throw new IllegalStateException("initializeDataAid must be called before this method");
 		}
+		logger.info("Data aid initialized in footer");
 
-		if (!aid.printer.isPrintActive()) {
+		if (!(aid.configuration.getMachineConfig().getFooterExecutionHandling() == ControlFlow.Always ||
+			(aid.printer.isPrintActive() && aid.configuration.getMachineConfig().getFooterExecutionHandling() == ControlFlow.OnSuccess) ||
+			(aid.printer.isPrintInProgress() && aid.configuration.getMachineConfig().getFooterExecutionHandling() == ControlFlow.OnSuccessAndCancellation))) {
+			logger.info("Didn't perform footer because handling was:" + aid.configuration.getMachineConfig().getFooterExecutionHandling()  + " and status is:" + aid.printer.getStatus());
 			return aid.printer.getStatus();
 		}
 		
 		if (aid.slicingProfile.getgCodeFooter() != null && aid.slicingProfile.getgCodeFooter().trim().length() > 0) {
-			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeFooter(), true);
+			aid.printer.getPrinterController().executeCommands(aid.printJob, aid.slicingProfile.getgCodeFooter(), false);
+		} else {
+			logger.info("gCodeFooter was: '" + aid.slicingProfile.getgCodeFooter() + "'");
 		}
 		
 		if (aid.printer.isProjectorPowerControlSupported()) {
@@ -551,7 +581,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		
 		logger.trace("Writing applyImageTransforms1Begin:{}", () -> Log4jUtil.logImage(imageToRender, "applyImageTransforms1Begin.png"));
 
-		BufferedImage imageToRenderAfterTransformations = new BufferedImage(aid.xResolution, aid.yResolution, BufferedImage.TYPE_4BYTE_ABGR);
+		BufferedImage imageToRenderAfterTransformations = aid.printer.createBufferedImageFromGraphicsOutputInterface(aid.xResolution, aid.yResolution);
 		Graphics2D graphicsAfterTransformations = (Graphics2D)imageToRenderAfterTransformations.getGraphics();
 		graphicsAfterTransformations.setColor(Color.BLACK);
 		graphicsAfterTransformations.fillRect(0, 0, aid.xResolution, aid.yResolution);

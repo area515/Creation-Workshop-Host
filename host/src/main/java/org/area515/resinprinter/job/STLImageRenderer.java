@@ -61,7 +61,7 @@ public class STLImageRenderer extends CurrentImageRenderer {
 		STLDataAid aid = (STLDataAid)this.aid;
 		aid.slicer.colorizePolygons(null, null);
 		if (imageToDisplay == null) {
-			imageToDisplay = buildImage((int)aid.slicer.getWidthPixels(), (int)aid.slicer.getHeightPixels());
+			imageToDisplay = aid.printer.createBufferedImageFromGraphicsOutputInterface((int)aid.slicer.getWidthPixels(), (int)aid.slicer.getHeightPixels());
 		}
 		
 		Graphics2D g2 = (Graphics2D)imageToDisplay.getGraphics();

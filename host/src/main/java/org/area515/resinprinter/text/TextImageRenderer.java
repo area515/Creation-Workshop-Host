@@ -71,7 +71,7 @@ public class TextImageRenderer extends TwoDimensionalImageRenderer {
         if (totalHeight < 1) {
         	totalHeight = 1;
         }
-		BufferedImage textImage = new BufferedImage((int)maxWidth, (int)totalHeight, BufferedImage.TYPE_4BYTE_ABGR);
+		BufferedImage textImage = aid.printer.createBufferedImageFromGraphicsOutputInterface((int)maxWidth, (int)totalHeight);
 		Graphics2D textGraphics = (Graphics2D)textImage.getGraphics();
 		textGraphics.setFont(font);
 		textGraphics.setColor(Color.WHITE);

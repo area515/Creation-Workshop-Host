@@ -174,7 +174,8 @@ public class SchedulingPattern {
 	 * The parser for the day of week values.
 	 */
 	private static final ValueParser DAY_OF_WEEK_VALUE_PARSER = new DayOfWeekValueParser();
-
+	private Boolean hasRunReboot;
+	
 	/**
 	 * Validates a string as a scheduling pattern.
 	 * 
@@ -237,6 +238,11 @@ public class SchedulingPattern {
 	 */
 	public SchedulingPattern(String pattern) throws InvalidPatternException {
 		this.asString = pattern;
+		if (asString.equals("@reboot")) {
+			hasRunReboot = false;
+			return;
+		}
+		
 		StringTokenizer st1 = new StringTokenizer(pattern, "|");
 		if (st1.countTokens() < 1) {
 			throw new InvalidPatternException("invalid pattern: \"" + pattern + "\"");
@@ -459,6 +465,14 @@ public class SchedulingPattern {
 	 * @return true if the given timestamp matches the pattern.
 	 */
 	public boolean match(TimeZone timezone, long millis) {
+		if (hasRunReboot != null) {
+			if (hasRunReboot) {
+				return false;
+			}
+			hasRunReboot = true;
+			return true;
+		}
+		
 		GregorianCalendar gc = new GregorianCalendar();
 		gc.setTimeInMillis(millis);
 		gc.setTimeZone(timezone);

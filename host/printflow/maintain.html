@@ -1,0 +1,168 @@
+<html>
+    <head>
+        <title>Maintain</title>
+        <style>
+
+		.layerheight { 
+			position: absolute; 
+			top: 140px; 
+			left: 630px; 
+			color: white;
+		}
+		.zheight { 
+			position: absolute; 
+			top: 185px; 
+			left: 630px; 
+			color: white;
+		}
+		
+		.togglebutton { 
+			position: absolute; 
+			top: 91px; 
+			left: 250px;
+			width:356px;
+			color: white;
+			text-align: center;
+			font-size: 30px;
+			z-index: 2;
+		}
+
+        </style>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+
+        <!-- jQuery library -->
+        <script src="../jquery/jquery.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="../bootstrap/js/bootstrap.min.js"></script>
+
+        <!-- Latest v1 Angular -->
+        <script src="../angular/js/angular.min.js"></script>
+
+        <script src="js/moment.min.js"></script>
+		<script src="js/printerconfig.js"></script>
+		<script src="js/printflow.js"></script>
+		<script src="js/js.cookie.js"></script>
+		
+		<link href="css/printflow.css" rel="stylesheet">
+    </head>
+    <body style="background-color: black;" onload="init()">
+		<script>
+			var PRINTERONTEXT = "Enable Printer";
+			var PRINTEROFFTEXT = "Disable Printer";
+			var WAITINGTEXT = "Processing...";
+			var PRINTERONIMAGE = "images/printer-on.png";
+			var PRINTEROFFIMAGE = "images/printer-off.png";
+			var PRINTERMIDCHANGEIMAGE = "images/printer-midchange.png";
+			
+			function init(){
+				startpage();
+				getLayerData();
+				setInterval(function(){
+				if (document.getElementById("printerstatus").src.indexOf(PRINTERONIMAGE) > -1){
+					document.getElementById("togglebutton").innerHTML=PRINTEROFFTEXT;
+				}
+				else if (document.getElementById("printerstatus").src.indexOf(PRINTERMIDCHANGEIMAGE) > -1){
+					document.getElementById("togglebutton").innerHTML=WAITINGTEXT;
+				}
+				else{
+					document.getElementById("togglebutton").innerHTML=PRINTERONTEXT;
+				}
+				},1000);
+				
+			}
+			
+			function changez(height) {
+				if ((parseInt(document.getElementById("zdata").innerHTML)+parseInt(height))<200) {
+					$.getJSON('../services/printers/moveZ/'+printerName+'/'+height);
+					document.getElementById("zdata").innerHTML= parseInt(document.getElementById("zdata").innerHTML)+parseInt(height);
+				}
+				else{
+					$('#warning').show();
+					document.getElementById("bigbuttonhighlight").style.setProperty("filter","hue-rotate(180deg)");
+					document.getElementById("bigbuttonhighlight").style.setProperty("-webkit-filter","hue-rotate(180deg)");
+					setTimeout(function() {
+						$('#warning').hide();
+						document.getElementById("bigbuttonhighlight").style.setProperty("filter","hue-rotate(0deg)");
+						document.getElementById("bigbuttonhighlight").style.setProperty("-webkit-filter","hue-rotate(0deg)");
+					}, 5000);
+				}
+			}
+			
+			function homez() {
+				$.getJSON('../services/printers/homeZ/'+printerName);
+				document.getElementById("zdata").innerHTML= 0;
+				$('#zheight').show();
+			}
+			
+			function togglePrinter() {
+				if (document.getElementById("togglebutton").innerHTML !== WAITINGTEXT){
+					document.getElementById("togglebutton").innerHTML = WAITINGTEXT;
+					document.getElementById("printerstatus").src = PRINTERMIDCHANGEIMAGE;
+					
+					$.getJSON("/services/printers/get/"+encodeURI(printerName)).done(function (data){
+					if (data.started) { // turn the printer off
+						$.getJSON('/services/printers/stop/'+printerName).done(function(){
+							document.getElementById("togglebutton").innerHTML=PRINTERONTEXT;
+							document.getElementById("printerstatus").src = PRINTEROFFIMAGE;
+							Cookies.set('printerstatus',PRINTEROFFIMAGE);
+						});
+						
+					}
+					else{ // turn the printer on
+						$.getJSON('/services/printers/start/'+printerName).done(function(){
+							document.getElementById("togglebutton").innerHTML=PRINTEROFFTEXT;
+							document.getElementById("printerstatus").src = PRINTERONIMAGE;
+							Cookies.set('printerstatus',PRINTERONIMAGE);
+						});
+					}
+					});
+				}
+			}
+			
+			function getLayerData(){
+				var Ink = {};
+				var layerdata = 0;
+				$.getJSON('/services/printers/get/'+printerName).done(function(data){
+				
+				var Ink = data.configuration.slicingProfile.InkConfig;
+				var selected = data.configuration.slicingProfile.SelectedInk;
+					Ink.forEach(function(el){
+						//create a java multidimensional array
+						if (selected === el.Name) {
+							layerdata = parseFloat(el.SliceHeight)*1000;
+						}
+					});
+				});
+			}
+			</script>
+        <div class="screen">
+            <div class="main">
+				<img class="uilayer" src="images/maintain.png" usemap="maintain" class="uilayer">
+				<map name="maintain">
+					<area  alt="" title="" href="maintain.html" shape="poly" coords="160,40,137,45,118,58,105,77,100,100,105,123,118,142,137,155,160,160,183,155,202,142,215,123,220,100,215,77,202,58,183,45" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="printflowsettings.html" shape="poly" coords="65,132,52,135,40,142,33,154,30,167,33,180,40,192,52,199,65,202,78,199,90,192,97,180,100,167,97,154,90,142,78,135" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="printflow.html" shape="poly" coords="48,16,35,19,25,26,18,36,15,49,18,62,25,72,35,79,48,82,61,79,71,72,78,62,81,49,78,36,71,26,61,19" style="outline:none;" target="_self"     />
+					<area  alt="" title="toggle" shape="rect" coords="252,41,608,103" style="outline:none;" target="_self" onclick="togglePrinter();"    />
+					<area  alt="" title="minus10"" shape="rect" coords="371,110,445,167" style="outline:none;" target="_self" onclick="changez(-10);"    />
+					<area  alt="" title="plus10"  shape="rect" coords="448,110,522,167" style="outline:none;" target="_self" onclick="changez(10);"    />
+					<area  alt="" title="plus50" shape="rect" coords="525,110,599,167" style="outline:none;" target="_self" onclick="changez(50);"    />
+					<area  alt="" title="homeZ" shape="rect" coords="252,172,608,236" style="outline:none;" target="_self" onclick="homez();"    />
+					<area  alt="" title="testDisplay" shape="rect" coords="252,238,608,302" style="outline:none;" target="_self" onclick="$.getJSON('../services/printers/showGridScreen/'+printerName+'/50');"     />
+				</map>
+				<img name="wifi" id="wifi" class="wifi" src="images/pixel.png">
+				<img name="printerstatus" id="printerstatus" class="printerstatus" src="images/pixel.png">
+				<div name="zheight" id="zheight" class="zheight collapse">Current Z Height:<br><span name="zdata" id="zdata">0</span> mm</div>
+				<div name="warn" id="warn" class="warn"><div id="warning" role="alert" class="alert alert-danger collapse" ><strong>Error</strong><br>Cannot move past Z axis limits!</div></div>
+				<div name="togglebutton" class="togglebutton" id="togglebutton" onClick="togglePrinter();"></div>
+				
+				<img name="homehighlight" id="homehighlight" class="homehighlight" src="images/homehighlightANIM.png" onClick="location.href='printflow.html';">
+				<img name="bigbuttonhighlight" id="bigbuttonhighlight" class="bigbuttonhighlight" src="images/bigbuttonANIM.png" onClick="location.href='maintain.html';">
+				<img name="smallbuttonhighlight" id="smallbuttonhighlight" class="smallbuttonhighlight" src="images/homehighlightANIM.png" onClick="location.href='printflowsettings.html';">
+            </div>
+        </div>
+
+	
+    </body>
+</html>

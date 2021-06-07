@@ -17,8 +17,8 @@ public class TestGCodeTemplating {
 	public void testEmptyGCode() throws Exception {
 		AbstractPrintFileProcessor processor = Mockito.mock(AbstractPrintFileProcessor.class, Mockito.CALLS_REAL_METHODS);
 		PrintJob printJob = AbstractPrintFileProcessorTest.createTestPrintJob(processor);
-		Assert.assertNull(printJob.getPrinter().getGCodeControl().executeGCodeWithTemplating(printJob, null, true));
-		Assert.assertNull(printJob.getPrinter().getGCodeControl().executeGCodeWithTemplating(printJob, " ", true));
+		Assert.assertNull(printJob.getPrinter().getPrinterController().executeCommands(printJob, null, true));
+		Assert.assertNull(printJob.getPrinter().getPrinterController().executeCommands(printJob, " ", true));
 	}
 	
 	@Test
@@ -26,7 +26,7 @@ public class TestGCodeTemplating {
 		AbstractPrintFileProcessor processor = Mockito.mock(AbstractPrintFileProcessor.class, Mockito.CALLS_REAL_METHODS);
 		PrintJob printJob = AbstractPrintFileProcessorTest.createTestPrintJob(processor);
 		String gcodes = "G1 Z${ZLiftDist} F${ZLiftRate}\nG1 Z-${(ZLiftDist - LayerThickness)} F180;\n\nM18\n; <    dElAy >   ${ZLiftDist * ZLiftRate};\n;";
-		Mockito.when(printJob.getPrinter().getGCodeControl().sendGcodeAndRespectPrinter(Mockito.any(PrintJob.class), Mockito.any(String.class)))
+		Mockito.when(printJob.getPrinter().getPrinterController().sendCommandToFirmwareSerialPortAndRespectPrinter(Mockito.any(PrintJob.class), Mockito.any(String.class)))
 			.then(new Answer<String>() {
 				private int count = 0;
 
@@ -51,7 +51,7 @@ public class TestGCodeTemplating {
 					return (String)"ok";
 				}
 			});
-		printJob.getPrinter().getGCodeControl().executeGCodeWithTemplating(printJob, gcodes, true);
+		printJob.getPrinter().getPrinterController().executeCommands(printJob, gcodes, true);
 	}
 }
 

@@ -1,0 +1,226 @@
+<html>
+    <head>
+        <title>wifi settings</title>
+        <style>
+
+		.wifisettings{
+			position: absolute; 
+			top: 195px; 
+			left: 50px; 
+		}
+
+		.Nettitle { 
+			position: absolute; 
+			top: 120px; 
+			left: 250px; 
+			color: white;
+			font-size: large;
+		}
+		.SSIDlabel { 
+			position: absolute; 
+			top: 60px; 
+			left: 250px; 
+			color: white;
+			font-size: large;
+		}
+		.SSID { 
+			position: absolute; 
+			top: 90px; 
+			left: 260px; 
+			color: white;
+			background-color: transparent;
+			width: 300px;
+			font-size: large;
+		}
+		
+		.passlabel { 
+			position: absolute; 
+			top: 140px; 
+			left: 250px; 
+			color: white;
+			font-size: large;
+		}
+		.pass { 
+			position: absolute; 
+			top: 170px; 
+			left: 260px;
+			width: 300px;
+			background-color: transparent;
+			color: white;
+			font-size: large;
+		}
+		
+		.wifiselect { 
+			position: absolute; 
+			top: 191px; 
+			left: 260px;
+			width: 270px;
+			height: 109px;
+			background-color: transparent;
+			color: white;
+			border: none;
+			font-size: large;
+			overflow-y: auto;
+		}
+		
+		.savelabel { 
+			position: absolute; 
+			top: 120; 
+			left: 127;
+			width:60px;
+			color: white;
+			text-align: center;
+			font-size: 30px;
+			z-index: 2;
+		}
+		
+		.savebutton { 
+			position: absolute; 
+			top: 315px; 
+			left: 260px;
+			width:300px;
+			color: white;
+			text-align: center;
+			font-size: 30px;
+			z-index: 2;
+		}
+
+        </style>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
+
+         <!-- jQuery library -->
+        <script src="../jquery/jquery.min.js"></script>
+	    
+        <!-- Latest compiled JavaScript -->
+        <script src="../bootstrap/js/bootstrap.min.js"></script>
+
+        <!-- Latest v1 Angular -->
+        <script src="../angular/js/angular.min.js"></script>
+
+        <script src="js/moment.min.js"></script>
+
+		<script src="js/printflow.js"></script>
+		<script src="js/printerconfig.js"></script>
+		
+		<link href="css/printflow.css" rel="stylesheet">
+		
+		<script src="js/js.cookie.js"></script>
+		
+		<link href="css/keyboard-dark.css" rel="stylesheet">
+		<script src="js/jquery.keyboard.js"></script>
+		<script>
+		$(function(){
+			$('#SSID').keyboard({  usePreview : false, autoAccept : true,});
+			$('#pass').keyboard({  usePreview : false, autoAccept : true,});
+		});
+		</script>
+    </head>
+    <body style="background-color: black;" onload="document.getElementById('SSID').value=ssid;">
+		<script>
+			ssid = decodeURIComponent(urlParam("SSID"));
+			if (ssid=="null") ssid="";
+			
+			function init(){
+				startpage();
+			}
+	
+			function saveWifi(){
+
+				supportedcrypt = null;
+				parentinterface = null;
+				found = false;
+
+				$.getJSON('../services/machine/wirelessNetworks/list')
+				.done(function(data){
+					$.each(data, function (key, val) {
+						if (val.ssid==document.getElementById("SSID").value){
+							supportedcrypt= val.supportedWirelessEncryption;
+							parentinterface = val.parentInterfaceName;
+							found = true;
+						}
+					});
+					if (found){
+						data={
+							"ssid": document.getElementById("SSID").value,
+							"supportedWirelessEncryption": supportedcrypt,
+							"parentInterfaceName": parentinterface,
+							"password": document.getElementById("pass").value,
+						};
+		
+						console.log(data);
+						$.ajax({
+							method: 'PUT',
+							url: "../services/machine/wirelessConnect",
+							headers: {"Content-Type": "application/json" },
+							data: JSON.stringify(data),
+							dataType: 'json',
+							success: function(resp) {
+								document.getElementById("warn").setAttribute("color","green");
+								document.getElementById("warn").innerHTML="Settings saved!";
+								console.log(resp);
+								setTimeout(function() {
+									location.href="wifisettings.html";
+								}, 2000);
+							},	
+							error: function(xhr, status, error) {
+								console.log(status + ":" + error);
+								$('#warning').show();
+								document.getElementById("bigbuttonhighlight").style.setProperty("filter","hue-rotate(180deg)");
+								document.getElementById("bigbuttonhighlight").style.setProperty("-webkit-filter","hue-rotate(180deg)");
+								setTimeout(function() {
+									$('#warning').hide();
+									document.getElementById("bigbuttonhighlight").style.setProperty("filter","hue-rotate(0deg)");
+									document.getElementById("bigbuttonhighlight").style.setProperty("-webkit-filter","hue-rotate(0deg)");
+								}, 5000);
+							}
+						});
+					}
+					else{
+						window.location.href=("error.html?errorname=Saving WiFi connection failed&errordetails=Saving wifi connection "+document.getElementById("SSID").value+" failed.&errordetails2=The printer was unable to find the wireless access point "+document.getElementById("SSID").value+". Your settings have not been changed.");
+					}
+				})
+				.fail(function(){
+					console.log(status + ":" + error);
+					$('#warning').show();
+					document.getElementById("bigbuttonhighlight").style.setProperty("filter","hue-rotate(180deg)");
+					document.getElementById("bigbuttonhighlight").style.setProperty("-webkit-filter","hue-rotate(180deg)");
+					setTimeout(function() {
+						$('#warning').hide();
+						document.getElementById("bigbuttonhighlight").style.setProperty("filter","hue-rotate(0deg)");
+						document.getElementById("bigbuttonhighlight").style.setProperty("-webkit-filter","hue-rotate(0deg)");
+					}, 5000);
+
+				});
+			}
+		</script>
+        <div class="screen">
+            <div class="main">
+				<img src="images/wifisetup.png" usemap="wifisettings" class="uilayer">
+				<map name="wifisettings">
+					<area  alt="" title="" href="wifisettings.html" shape="poly" coords="160,40,137,45,118,58,105,77,100,100,105,123,118,142,137,155,160,160,183,155,202,142,215,123,220,100,215,77,202,58,183,45" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="wifisettings.html" shape="poly" coords="65,132,52,135,40,142,33,154,30,167,33,180,40,192,52,199,65,202,78,199,90,192,97,180,100,167,97,154,90,142,78,135" style="outline:none;" target="_self"     />
+					<area  alt="" title="" href="printflow.html" shape="poly" coords="48,16,35,19,25,26,18,36,15,49,18,62,25,72,35,79,48,82,61,79,71,72,78,62,81,49,78,36,71,26,61,19" style="outline:none;" target="_self"     />
+					<area  alt="" title="Save" shape="rect" coords="252,268,548,324" style="outline:none;" target="_self" onClick="saveWifi();"    />
+					<area  alt="" title="delete settings" href="" shape="poly" coords="598,222,590,224,583,228,579,235,577,243,579,251,583,258,590,262,598,264,606,262,613,258,617,251,619,243,617,235,613,228,606,224" style="outline:none;" target="_self"     />
+
+				</map>
+				<img name="wifi" id="wifi" class="wifi" src="images/pixel.png">
+				<img name="wifisettings" id="wifisettings" class="wifisettings" src="" onClick="location.href='wifisettings.html';">
+				<div name="SSIDlabel" class="SSIDlabel" id="SSIDlabel">SSID:</div>
+				<input name="SSID" class="SSID" id="SSID" value=""></input>
+				<div name="passlabel" class="passlabel" id="passlabel">Password:</div>
+				<input name="pass" class="pass" id="pass" type="password" value=""></input>
+				<div name="savebutton" class="savebutton" id="savebutton" onClick="saveWifi();">Save</div>
+				<div name="savelabel" class="savelabel" id="savelabel" onClick="saveWifi();">Save</div>
+				<div name="warn" id="warn" class="warn"><div id="warning" role="alert" class="alert alert-danger collapse" ><strong>Error</strong><br>Could not save settings</div></div>
+				
+				<img name="homehighlight" id="homehighlight" class="homehighlight" src="images/homehighlightANIM.png" onClick="location.href='printflow.html';">
+				<img name="bigbuttonhighlight" id="bigbuttonhighlight" class="bigbuttonhighlight" src="images/bigbuttonANIM.png" onClick="saveWifi();">
+				<img name="smallbuttonhighlight" id="smallbuttonhighlight" class="smallbuttonhighlight" src="images/homehighlightANIM.png" onClick="location.href='wifisettings.html';">
+            </div>
+        </div>
+
+	
+    </body>
+</html>

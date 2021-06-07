@@ -3,7 +3,11 @@ package org.area515.resinprinter.job;
 import java.io.File;
 import java.util.Date;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+
 import org.apache.commons.io.FilenameUtils;
+import org.area515.util.DynamicJSonSettings;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -14,7 +18,7 @@ public class Printable {
 	private PrintFileProcessor<?,?> printFileProcessor;
 	@JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm a z")
 	private Date modifiedDate;
-	
+			
 	public Printable(File printable, PrintFileProcessor<?,?> processor) {
 		name = FilenameUtils.getBaseName(printable.getName());
 		extension = FilenameUtils.getExtension(printable.getName());

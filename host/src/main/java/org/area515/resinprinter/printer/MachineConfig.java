@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.area515.resinprinter.display.ControlFlow;
 import org.area515.resinprinter.display.FullScreenMode;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -153,6 +154,8 @@ public class MachineConfig implements Named {
 	private Boolean overrideModelNormalsWithRightHandRule;
 	@XmlElement(name="RestartSerialOnTimeout")
 	private Boolean restartSerialOnTimeout;
+	private ControlFlow footerExecution;
+	
 	private String name;
 
 	@XmlTransient
@@ -162,6 +165,18 @@ public class MachineConfig implements Named {
 	}
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	@XmlElement(name="FooterExecutionHandling")
+	@JsonProperty
+	public ControlFlow getFooterExecutionHandling() {
+		if (footerExecution == null) {
+			footerExecution = ControlFlow.OnSuccess;
+		}
+		return footerExecution;
+	}
+	public void setFooterExecutionHandling(ControlFlow footerExecution) {
+		this.footerExecution = footerExecution;
 	}
 	
 	@XmlTransient

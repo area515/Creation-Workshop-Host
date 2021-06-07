@@ -74,7 +74,6 @@ Adds ourselves as a service in Linux
 Installs the latest version of Java if it isn't at least 1.8
 Sets the display variable if it isn't already set
 If Creation Workshop Host isn't already installed, it installs it.
-Installs rxtx if it isn't already installed
 
 TODO:
 -----

@@ -27,35 +27,11 @@
 		<zip destfile="${deployedServerZipFile}">
 			<zipfileset dir="build" includes="**/build.number"/>
 			<zipfileset dir="build/install/photonic3d/lib" includes="**/*.properties"/>
-			<zipfileset dir="os" prefix="os" includes="**/*"/>
 			<zipfileset dir="bin"/>
 			<zipfileset dir="resources" prefix="resources" includes="**/*"/>
 			<zipfileset dir="resourcesnew" prefix="resourcesnew" includes="**/*"/>
+			<zipfileset dir="printflow" prefix="printflow" includes="**/*"/>
 			<zipfileset dir="build/install/photonic3d/lib" prefix="lib" includes="**/*.jar"/>
 		</zip>
-		<!--
-		<zip destfile="${deployedTestZipFile}">
-			<zipfileset dir="build" includes="**/build.number"/>
-			<zipfileset dir="build/install/photonic3d/lib" includes="**/*.properties"/>
-			<zipfileset dir="os" prefix="os" includes="**/*"/>
-			<zipfileset dir="bin"/>
-			<zipfileset dir="resources" prefix="resources" includes="**/*"/>
-			<zipfileset dir="resourcesnew" prefix="resourcesnew" includes="**/*"/>
-			<zipfileset dir="build/install/photonic3d/lib" prefix="lib" includes="**/*.jar"/>
-		</zip>
-		<zip destfile="${deployedClientZipFile}">
-			<zipfileset dir="build" includes="**/build.number"/>
-			<zipfileset dir="build/libs" prefix="lib" includes="**/*.jar"/>
-			<zipfileset dir="libs/cling" prefix="lib" includes="**/*.jar"/>
-			<zipfileset dir="libs/jsch" prefix="lib" includes="**/*.jar"/>
-			<zipfileset dir="libs/commons-logging" prefix="lib" includes="**/*.jar"/>
-			<zipfileset dir="libs/log4j" prefix="lib" includes="**/*.jar"/>
-			<zipfileset dir="libs/resteasy" prefix="lib" includes="**/jackson-annotations*.jar"/>
-			<zipfileset dir="libs/resteasy" prefix="lib" includes="**/jackson-core*.jar"/>
-			<zipfileset dir="libs/resteasy" prefix="lib" includes="**/jackson-databind*.jar"/>
-			<zipfileset dir="bin" includes="**/browseprinter.*"/>
-			<zipfileset dir="bin" includes="**/slicebrowser.*"/>
-		</zip>
-		-->
 	</target>
 </project>

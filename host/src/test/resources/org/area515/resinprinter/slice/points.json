@@ -1,4 +1,40 @@
-[ {
+[{
+  "points" : [ {
+    "x" : 473,
+    "y" : 322,
+    "sliceNumber" : 341
+  } ],
+  "fileName" : "StrapCapo.STL",
+  "stlScale" : 1.0,
+  "pixelsPerMMX" : 5.0,
+  "pixelsPerMMY" : 5.0,
+  "zSliceResolution" : 0.1,
+  "zSliceOffset" : 0.0
+}, {
+  "points" : [ {
+    "x" : 541,
+    "y" : 320,
+    "sliceNumber" : 113
+  } ],
+  "fileName" : "clamp.STL",
+  "stlScale" : 1.0,
+  "pixelsPerMMX" : 5.0,
+  "pixelsPerMMY" : 5.0,
+  "zSliceResolution" : 0.1,
+  "zSliceOffset" : 0.0
+}, {
+  "points" : [ {
+    "x" : 449,
+    "y" : 332,
+    "sliceNumber" : 1
+  } ],
+  "fileName" : "body.STL",
+  "stlScale" : 1.0,
+  "pixelsPerMMX" : 5.0,
+  "pixelsPerMMY" : 5.0,
+  "zSliceResolution" : 0.1,
+  "zSliceOffset" : 0.0
+}, {
   "points" : [ {
     "x" : 510,
     "y" : 203,

@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.RejectedExecutionException;
@@ -33,6 +34,7 @@ public class CronFeature implements Feature {
 	public static ScheduledExecutorService CRON_EXECUTOR = new ScheduledThreadPoolExecutor(10, new ThreadFactoryBuilder().setNameFormat("CronThread-%d").setDaemon(true).build());
 	
 	public static class CronTask implements Callable<Object> {
+	    private URI uri;
 		private String taskName;
 		private Runnable runnable;
 		private Callable<?> callable;
@@ -101,7 +103,10 @@ public class CronFeature implements Feature {
 				} else {
 					throw new RejectedExecutionException(runnableOrCallable + " class:" + runnableOrCallableClass + " not an instance of Runnable or Callable");
 				}
-				BeanUtils.populate(runnableOrCallable, getTaskSettings() == null?null:getTaskSettings().getSettings());
+				
+				HashMap<String, Object> settings = getTaskSettings() == null?new HashMap<String, Object>():getTaskSettings().getSettings();
+				settings.put("uri", uri);
+				BeanUtils.populate(runnableOrCallable, settings);
 			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
 				logger.error("Couldn't create class:" + taskClassName, e);
 			}
@@ -167,6 +172,9 @@ public class CronFeature implements Feature {
 		ObjectMapper mapper = new ObjectMapper(new JsonFactory());
 		try {
 			CronTask[] cronTask = mapper.readValue(cronTasks, new TypeReference<CronTask[]>(){});
+			for (CronTask currentTask : cronTask) {
+				currentTask.uri = uri;
+			}
 			Collections.addAll(taskList, cronTask);
 		} catch (IOException e) {
 			throw new IllegalArgumentException(cronTasks + " didn't parse correctly.", e);

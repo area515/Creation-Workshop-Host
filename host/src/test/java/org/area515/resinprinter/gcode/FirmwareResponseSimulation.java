@@ -40,13 +40,13 @@ public class FirmwareResponseSimulation {
 	public void GRBLTest() throws IOException {
 		PrintJob printJob = buildTestPrintJob();
 		Printer printer = printJob.getPrinter();
-		GCodeControl control = new eGENERICGCodeControl(printer);
+		PrinterController control = new eGENERICGCodeControl(printer);
 		if (data == null) {
 			Mockito.when(printer.getPrinterFirmwareSerialPort().read()).thenReturn(null).thenReturn(null);
 		} else {
 			Mockito.when(printer.getPrinterFirmwareSerialPort().read()).thenReturn(data.getBytes()).thenReturn(null);
 		}
-		Assert.assertEquals(data==null?"":data, control.sendGcodeAndRespectPrinter(printJob, "G21"));
+		Assert.assertEquals(data==null?"":data, control.sendCommandToFirmwareSerialPortAndRespectPrinter(printJob, "G21"));
 	}
 	
 	@Parameters
